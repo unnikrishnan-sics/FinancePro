@@ -1,30 +1,117 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Statistic, Typography, Table, Tag, Button } from 'antd';
+import { Row, Col, Card, Statistic, Typography, Table, Tag, Button, message, theme } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined, DollarOutlined, PlusOutlined } from '@ant-design/icons';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LineChart, Line, Legend } from 'recharts';
+import axios from 'axios';
+import AddTransactionModal from '../components/AddTransactionModal';
+import { useTheme } from '../context/ThemeContext';
 
 const { Title } = Typography;
 
 const Dashboard = () => {
     const [user, setUser] = useState({});
+    const [transactions, setTransactions] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const { token } = theme.useToken();
+    const { chartType } = useTheme();
+
+    // Stats
+    const [totalBalance, setTotalBalance] = useState(0);
+    const [income, setIncome] = useState(0);
+    const [expense, setExpense] = useState(0);
+    const [chartData, setChartData] = useState([]);
 
     useEffect(() => {
         const userInfo = localStorage.getItem('userInfo');
         if (userInfo) {
             setUser(JSON.parse(userInfo));
+            fetchTransactions();
         }
     }, []);
 
-    // Mock Data for Table
-    const dataSource = [
-        { key: '1', date: '2024-05-20', category: 'Grocery', amount: 120.50, type: 'expense' },
-        { key: '2', date: '2024-05-19', category: 'Salary', amount: 8500.00, type: 'income' },
-        { key: '3', date: '2024-05-18', category: 'Utilities', amount: 95.00, type: 'expense' },
-        { key: '4', date: '2024-05-15', category: 'Freelance', amount: 350.00, type: 'income' },
-        { key: '5', date: '2024-05-12', category: 'Dining Out', amount: 45.00, type: 'expense' },
-    ];
+    const fetchTransactions = async () => {
+        setLoading(true);
+        try {
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${userInfo.token}`,
+                },
+            };
+
+            // Trigger recurring check silently
+            axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/transactions/check-recurring`, {}, config).catch(() => { });
+
+            const { data } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/transactions/get-transactions`, config);
+            setTransactions(data);
+            calculateStats(data);
+            prepareChartData(data);
+        } catch (error) {
+            message.error('Failed to fetch transactions');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const calculateStats = (data) => {
+        const totalIncome = data
+            .filter(item => item.type === 'income')
+            .reduce((acc, item) => acc + item.amount, 0);
+
+        const totalExpense = data
+            .filter(item => item.type === 'expense')
+            .reduce((acc, item) => acc + item.amount, 0);
+
+        setIncome(totalIncome);
+        setExpense(totalExpense);
+        setTotalBalance(totalIncome - totalExpense);
+    };
+
+    const prepareChartData = (data) => {
+        // 1. Group by Date
+        const grouped = data.reduce((acc, item) => {
+            const dateKey = new Date(item.date).toLocaleDateString();
+            if (!acc[dateKey]) {
+                acc[dateKey] = { date: dateKey, amount: 0, income: 0, expense: 0 };
+            }
+            if (item.type === 'income') {
+                acc[dateKey].income += item.amount;
+                acc[dateKey].amount += item.amount; // Net balance effect: +Income
+            } else {
+                acc[dateKey].expense += item.amount;
+                acc[dateKey].amount -= item.amount; // Net balance effect: -Expense
+            }
+            return acc;
+        }, {});
+
+        // 2. Convert to Array and Sort Chronologically
+        const sortedData = Object.values(grouped).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        // 3. Format Date for Display
+        const cData = sortedData.map(item => ({
+            ...item,
+            date: new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+            // Use absolute amount for visualization if needed, or keep net
+            // For "Spending Analytics", showing Net Daily Change is often good, or just Expense.
+            // Let's show Net Change since the previous chart was just +/- amounts.
+            // Or better: Let's track Cumulative Balance for a smoother line?
+            // The user expectation is likely "Trend". Let's toggle between Net Change.
+            // Actually, previous implementation just plotted amounts.
+            // Let's stick to Net Amount (Income - Expense) for the day.
+            amount: item.income - item.expense
+        }));
+
+        setChartData(cData.slice(-10)); // Show last 10 days
+    };
 
     const columns = [
-        { title: 'Date', dataIndex: 'date', key: 'date' },
+        {
+            title: 'Date',
+            dataIndex: 'date',
+            key: 'date',
+            render: (date) => new Date(date).toLocaleDateString()
+        },
         { title: 'Category', dataIndex: 'category', key: 'category' },
         {
             title: 'Type',
@@ -46,7 +133,37 @@ const Dashboard = () => {
                 </span>
             )
         },
+        {
+            title: 'Action',
+            key: 'action',
+            render: (_, record) => (
+                <Button
+                    type="text"
+                    danger
+                    size="small"
+                    onClick={() => handleDelete(record._id)}
+                >
+                    Delete
+                </Button>
+            ),
+        },
     ];
+
+    const handleDelete = async (id) => {
+        try {
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${userInfo.token}`,
+                },
+            };
+            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/transactions/delete-transaction`, { transactionId: id }, config);
+            message.success('Transaction deleted');
+            fetchTransactions();
+        } catch (error) {
+            message.error('Failed to delete transaction');
+        }
+    };
 
     return (
         <div>
@@ -55,7 +172,9 @@ const Dashboard = () => {
                     <Title level={3} style={{ margin: 0 }}>Overview</Title>
                     <Typography.Text type="secondary">Welcome back, {user.name} 👋</Typography.Text>
                 </div>
-                <Button type="primary" icon={<PlusOutlined />}>Add Transaction</Button>
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>
+                    Add Transaction
+                </Button>
             </div>
 
             <Row gutter={[16, 16]}>
@@ -63,80 +182,118 @@ const Dashboard = () => {
                     <Card bordered={false}>
                         <Statistic
                             title="Total Balance"
-                            value={12593.00}
+                            value={totalBalance}
                             precision={2}
-                            valueStyle={{ color: '#3f8600' }}
+                            valueStyle={{ color: totalBalance >= 0 ? '#3f8600' : '#cf1322' }}
                             prefix={<DollarOutlined />}
-                            suffix=""
                         />
-                        <div style={{ marginTop: 8, fontSize: 12 }}>
-                            <span style={{ color: '#3f8600' }}><ArrowUpOutlined /> 2.5%</span> vs last month
-                        </div>
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
                     <Card bordered={false}>
                         <Statistic
                             title="Income"
-                            value={8500.00}
+                            value={income}
                             precision={2}
                             valueStyle={{ color: '#3f8600' }}
                             prefix={<ArrowUpOutlined />}
                         />
-                        <div style={{ marginTop: 8, fontSize: 12 }}>
-                            <span style={{ color: '#3f8600' }}><ArrowUpOutlined /> 12%</span> vs last month
-                        </div>
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
                     <Card bordered={false}>
                         <Statistic
                             title="Expenses"
-                            value={4200.00}
+                            value={expense}
                             precision={2}
                             valueStyle={{ color: '#cf1322' }}
                             prefix={<ArrowDownOutlined />}
                         />
-                        <div style={{ marginTop: 8, fontSize: 12 }}>
-                            <span style={{ color: '#cf1322' }}><ArrowUpOutlined /> 4.1%</span> vs last month
-                        </div>
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
                     <Card bordered={false}>
                         <Statistic
                             title="Savings"
-                            value={3393.00}
+                            value={income - expense}
                             precision={2}
                             valueStyle={{ color: '#1677ff' }}
                             prefix={<DollarOutlined />}
                         />
-                        <div style={{ marginTop: 8, fontSize: 12 }}>
-                            <span style={{ color: '#3f8600' }}><ArrowUpOutlined /> 2.1%</span> vs last month
-                        </div>
                     </Card>
                 </Col>
             </Row>
 
             <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
-                <Col xs={24} lg={16}>
+                <Col span={24}>
                     <Card title="Spending Analytics" bordered={false} style={{ height: '100%' }}>
-                        <div style={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5', borderRadius: 8, border: '1px dashed #d9d9d9' }}>
-                            <Typography.Text type="secondary">[Chart Component Placeholder]</Typography.Text>
+                        <div style={{ height: 300, width: '100%' }}>
+                            <ResponsiveContainer>
+                                {chartType === 'bar' ? (
+                                    <BarChart data={chartData}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis dataKey="date" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Bar dataKey="income" fill="#52c41a" name="Income" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="expense" fill="#f5222d" name="Expenses" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                ) : chartType === 'line' ? (
+                                    <LineChart data={chartData}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis dataKey="date" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="income" stroke="#52c41a" strokeWidth={3} dot={{ r: 4 }} name="Income" />
+                                        <Line type="monotone" dataKey="expense" stroke="#f5222d" strokeWidth={3} dot={{ r: 4 }} name="Expenses" />
+                                    </LineChart>
+                                ) : (
+                                    <AreaChart data={chartData}>
+                                        <defs>
+                                            <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#52c41a" stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor="#52c41a" stopOpacity={0} />
+                                            </linearGradient>
+                                            <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#f5222d" stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor="#f5222d" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis dataKey="date" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Area type="monotone" dataKey="income" stroke="#52c41a" fillOpacity={1} fill="url(#colorIncome)" name="Income" />
+                                        <Area type="monotone" dataKey="expense" stroke="#f5222d" fillOpacity={1} fill="url(#colorExpense)" name="Expenses" />
+                                    </AreaChart>
+                                )}
+                            </ResponsiveContainer>
                         </div>
                     </Card>
                 </Col>
-                <Col xs={24} lg={8}>
-                    <Card title="Recent Transactions" bordered={false} extra={<a href="#">View All</a>} style={{ height: '100%' }}>
+                <Col span={24}>
+                    <Card title="Recent Transactions" bordered={false} style={{ height: '100%' }}>
                         <Table
-                            dataSource={dataSource}
+                            dataSource={transactions}
                             columns={columns}
-                            pagination={false}
+                            pagination={{ pageSize: 5 }}
+                            rowKey="_id"
+                            loading={loading}
                             size="small"
+                            scroll={{ x: 'max-content' }}
                         />
                     </Card>
                 </Col>
             </Row>
+
+            <AddTransactionModal
+                visible={isModalVisible}
+                onClose={() => setIsModalVisible(false)}
+                onAdd={fetchTransactions}
+            />
         </div>
     );
 };

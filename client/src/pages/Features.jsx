@@ -24,42 +24,42 @@ const Features = () => {
                         <FeatureCard
                             icon={<PieChart size={32} color={colorPrimary} />}
                             title="Visual Analytics"
-                            desc="Interactive charts that make complex financial data easy to understand at a glance."
+                            desc="Interactive charts (Area, Bar, Pie) that make financial data easy to understand at a glance."
                         />
                     </Col>
                     <Col xs={24} sm={12} md={8}>
                         <FeatureCard
                             icon={<TrendingUp size={32} color="#0ea5e9" />}
                             title="Predictive AI"
-                            desc="Forecast future expenses and income trends based on your historical data."
+                            desc="Forecast future expenses using Linear Regression based on your historical spending habits."
                         />
                     </Col>
                     <Col xs={24} sm={12} md={8}>
                         <FeatureCard
                             icon={<Shield size={32} color="#10b981" />}
-                            title="Bank-Grade Security"
-                            desc="Your data is encrypted with 256-bit AES protection. We prioritize your privacy."
+                            title="Secure Authentication"
+                            desc="JWT-based security with encrypted passwords and a secure 'Forgot Password' recovery flow."
                         />
                     </Col>
                     <Col xs={24} sm={12} md={8}>
                         <FeatureCard
                             icon={<Smartphone size={32} color={colorPrimary} />}
-                            title="Mobile First"
-                            desc="Manage your finances on the go with our fully responsive mobile design."
+                            title="Mobile Responsive"
+                            desc="Access your dashboard anywhere with a fully responsive layout optimized for all devices."
                         />
                     </Col>
                     <Col xs={24} sm={12} md={8}>
                         <FeatureCard
                             icon={<Globe size={32} color="orange" />}
-                            title="Multi-Currency"
-                            desc="Support for multiple currencies and real-time exchange rate conversion."
+                            title="Smart Recommendations"
+                            desc="Get AI-driven advice like 'Super Saver' or 'Debt Warning' based on your saving habits."
                         />
                     </Col>
                     <Col xs={24} sm={12} md={8}>
                         <FeatureCard
                             icon={<CreditCard size={32} color="purple" />}
-                            title="Smart Budgeting"
-                            desc="Set smart budgets for different categories and get alerted when you're close to limits."
+                            title="Fully Customizable"
+                            desc="Personalize your experience with Dark Mode, custom colors, and compact view options."
                         />
                     </Col>
                 </Row>

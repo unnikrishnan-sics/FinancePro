@@ -14,7 +14,7 @@ const Register = () => {
     const onFinish = async (values) => {
         setLoading(true);
         try {
-            const { data } = await axios.post('http://localhost:5000/api/auth/register', values);
+            const { data } = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/register`, values);
             localStorage.setItem('userInfo', JSON.stringify(data));
             message.success('Registration successful!');
             navigate('/dashboard');

@@ -14,7 +14,7 @@ const Login = () => {
     const onFinish = async (values) => {
         setLoading(true);
         try {
-            const { data } = await axios.post('http://localhost:5000/api/auth/login', values);
+            const { data } = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, values);
             localStorage.setItem('userInfo', JSON.stringify(data));
             message.success('Login successful!');
             navigate('/dashboard');
@@ -57,9 +57,14 @@ const Login = () => {
                     <Form.Item
                         name="password"
                         rules={[{ required: true, message: 'Please input your Password!' }]}
+                        style={{ marginBottom: 12 }}
                     >
                         <Input.Password prefix={<LockOutlined />} placeholder="Password" />
                     </Form.Item>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 24 }}>
+                        <Link to="/forgot-password" style={{ color: '#1677ff' }}>Forgot password?</Link>
+                    </div>
 
                     <Form.Item>
                         <Button type="primary" htmlType="submit" block loading={loading}>

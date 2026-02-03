@@ -1,15 +1,33 @@
-import React from 'react';
-import { Typography, Row, Col, Card, Form, Input, Button, theme } from 'antd';
+import React, { useState } from 'react';
+import { Typography, Row, Col, Card, Form, Input, Button, theme, message } from 'antd'; // Added message import
 import { MailOutlined, PhoneOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import axios from 'axios';
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
 
 const Contact = () => {
     const { token } = theme.useToken();
+    const [loading, setLoading] = useState(false);
+    const [form] = Form.useForm();
+    const [messageApi, contextHolder] = message.useMessage();
+
+    const onFinish = async (values) => {
+        setLoading(true);
+        try {
+            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/support/contact`, values);
+            messageApi.success('Message sent successfully! We will get back to you soon.');
+            form.resetFields();
+        } catch (error) {
+            messageApi.error(error.response?.data?.message || 'Failed to send message');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div style={{ padding: '80px 24px', maxWidth: 1000, margin: '0 auto' }}>
+            {contextHolder}
             <div style={{ textAlign: 'center', marginBottom: 60 }}>
                 <Title level={1}>Get in Touch</Title>
                 <Paragraph style={{ fontSize: 18, color: '#64748b' }}>
@@ -52,7 +70,12 @@ const Contact = () => {
                 <Col xs={24} md={14}>
                     <Card bordered={false} style={{ height: '100%', borderRadius: 16, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                         <Title level={3} style={{ marginBottom: 32 }}>Send us a Message</Title>
-                        <Form layout="vertical" size="large">
+                        <Form
+                            layout="vertical"
+                            size="large"
+                            form={form}
+                            onFinish={onFinish}
+                        >
                             <Row gutter={16}>
                                 <Col span={12}>
                                     <Form.Item name="firstName" rules={[{ required: true, message: 'Required' }]}>
@@ -72,7 +95,7 @@ const Contact = () => {
                                 <TextArea rows={4} placeholder="How can we help you?" />
                             </Form.Item>
                             <Form.Item>
-                                <Button type="primary" htmlType="submit" block>
+                                <Button type="primary" htmlType="submit" block loading={loading}>
                                     Send Message
                                 </Button>
                             </Form.Item>

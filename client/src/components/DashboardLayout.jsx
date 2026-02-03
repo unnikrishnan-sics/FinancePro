@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { Layout, Menu, Button, Avatar, Dropdown, theme, Typography } from 'antd';
+import { useTheme } from '../context/ThemeContext';
 import {
     AppstoreOutlined,
     WalletOutlined,
@@ -10,8 +11,13 @@ import {
     UserOutlined,
     BellOutlined,
     MenuFoldOutlined,
-    MenuUnfoldOutlined
+    MenuUnfoldOutlined,
+    NotificationOutlined,
+    CheckCircleOutlined,
+    MessageOutlined
 } from '@ant-design/icons';
+import { Badge, Popover, List, message as antMessage } from 'antd';
+import axios from 'axios';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -20,8 +26,9 @@ const DashboardLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [collapsed, setCollapsed] = useState(false);
+    const { darkMode } = useTheme();
     const {
-        token: { colorBgContainer, borderRadiusLG, colorPrimary },
+        token: { colorBgContainer, colorBgLayout, borderRadiusLG, colorPrimary, colorBorder },
     } = theme.useToken();
 
 
@@ -32,12 +39,24 @@ const DashboardLayout = () => {
         navigate('/login');
     };
 
-    const menuItems = [
+    const menuItems = userInfo.isAdmin ? [
+        { key: '/dashboard/admin', icon: <AppstoreOutlined />, label: 'Admin Dashboard' },
+        { key: '/dashboard/admin/system-analytics', icon: <PieChartOutlined />, label: 'System Analytics' },
+        { key: '/dashboard/admin/messages', icon: <MessageOutlined />, label: 'Messages' },
+        { key: '/dashboard/settings', icon: <SettingOutlined />, label: 'Settings' },
+    ] : [
         { key: '/dashboard', icon: <AppstoreOutlined />, label: 'Overview' },
         { key: '/dashboard/transactions', icon: <WalletOutlined />, label: 'Transactions' },
         { key: '/dashboard/analytics', icon: <PieChartOutlined />, label: 'Analytics' },
+        { key: '/dashboard/feedback', icon: <MessageOutlined />, label: 'Feedback' },
         { key: '/dashboard/settings', icon: <SettingOutlined />, label: 'Settings' },
     ];
+
+    React.useEffect(() => {
+        if (userInfo.isAdmin && location.pathname === '/dashboard') {
+            navigate('/dashboard/admin');
+        }
+    }, [userInfo, location, navigate]);
 
     const userMenu = {
         items: [
@@ -48,23 +67,81 @@ const DashboardLayout = () => {
         ]
     };
 
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    // Fetch Notifications
+    const fetchNotifications = async () => {
+        try {
+            const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/notifications/get-all-notification`,
+                { userId: userInfo._id }, // Note: passing userId in body as per controller, normally should be headers
+                { headers: { Authorization: `Bearer ${userInfo.token}` } }
+            );
+            setNotifications(res.data);
+            setUnreadCount(res.data.filter(n => !n.read).length);
+        } catch (error) {
+            console.error('Error fetching notifications', error);
+        }
+    };
+
+    // Mark Read
+    const handleRead = async () => {
+        try {
+            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/notifications/mark-as-read`,
+                { userId: userInfo._id },
+                { headers: { Authorization: `Bearer ${userInfo.token}` } }
+            );
+            setUnreadCount(0);
+            fetchNotifications();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    // Initial Fetch
+    React.useEffect(() => {
+        if (userInfo._id) fetchNotifications();
+    }, []);
+
+    const notificationContent = (
+        <div style={{ width: 300, maxHeight: 400, overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, borderBottom: '1px solid #f0f0f0' }}>
+                <Text strong>Notifications</Text>
+                <Button type="link" size="small" onClick={handleRead}>Mark all read</Button>
+            </div>
+            <List
+                dataSource={notifications}
+                renderItem={item => (
+                    <List.Item style={{ background: item.read ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.08)' : '#f0faff'), padding: '12px 8px', borderRadius: 4 }}>
+                        <List.Item.Meta
+                            avatar={item.type === 'warning' ? <BellOutlined style={{ color: '#faad14' }} /> : <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+                            title={<Text style={{ fontSize: 13 }}>{item.message}</Text>}
+                            description={<Text type="secondary" style={{ fontSize: 11 }}>{new Date(item.date).toLocaleDateString()}</Text>}
+                        />
+                    </List.Item>
+                )}
+                locale={{ emptyText: 'No notifications' }}
+            />
+        </div>
+    );
+
     return (
-        <Layout style={{ minHeight: '100vh' }}>
+        <Layout style={{ minHeight: '100vh', background: colorBgLayout }}>
             <Sider
                 trigger={null}
                 collapsible
                 collapsed={collapsed}
-                theme="light"
+                theme={darkMode ? 'dark' : 'light'}
                 width={250}
-                style={{ borderRight: '1px solid #f0f0f0' }}
+                style={{ borderRight: `1px solid ${darkMode ? '#303030' : '#f0f0f0'}` }}
             >
-                <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #f0f0f0' }}>
+                <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: `1px solid ${darkMode ? '#303030' : '#f0f0f0'}` }}>
                     <img src="/logo.png" alt="Logo" style={{ height: 40, marginRight: collapsed ? 0 : 10 }} />
-                    {!collapsed && <Title level={4} style={{ margin: 0 }}>FinancePro</Title>}
+                    {!collapsed && <Title level={4} style={{ margin: 0, color: darkMode ? '#fff' : 'inherit' }}>FinancePro</Title>}
                 </div>
 
                 <Menu
-                    theme="light"
+                    theme={darkMode ? 'dark' : 'light'}
                     mode="inline"
                     selectedKeys={[location.pathname]}
                     items={menuItems}
@@ -73,7 +150,7 @@ const DashboardLayout = () => {
                 />
             </Sider>
 
-            <Layout>
+            <Layout style={{ background: colorBgLayout }}>
                 <Header style={{ padding: '0 24px', background: colorBgContainer, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)' }}>
                     <Button
                         type="text"
@@ -83,7 +160,11 @@ const DashboardLayout = () => {
                     />
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                        <Button type="text" shape="circle" icon={<BellOutlined />} />
+                        <Popover content={notificationContent} trigger="click" placement="bottomRight" onOpenChange={(visible) => visible && fetchNotifications()}>
+                            <Badge count={unreadCount} offset={[-5, 5]}>
+                                <Button type="text" shape="circle" icon={<BellOutlined style={{ fontSize: 20 }} />} />
+                            </Badge>
+                        </Popover>
 
                         <Dropdown menu={userMenu}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
