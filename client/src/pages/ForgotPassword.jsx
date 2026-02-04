@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import API from '../utils/axios';
 
 const { Title, Text } = Typography;
 
@@ -14,7 +14,7 @@ const ForgotPassword = () => {
     const onFinish = async (values) => {
         setLoading(true);
         try {
-            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/forgotpassword`, { email: values.email });
+            await API.post('/api/auth/forgotpassword', { email: values.email });
             setSuccess(true);
             messageApi.success('Email sent! Check your inbox.');
         } catch (error) {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, Typography, Row, Col, Spin, message, theme, Divider, Alert } from 'antd';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { RobotOutlined, PieChartOutlined, DollarOutlined, RiseOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import API from '../utils/axios';
 
 const { Title, Text } = Typography;
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF1919'];
@@ -19,9 +19,7 @@ const AdminSystemAnalytics = () => {
     const fetchSystemAnalytics = async () => {
         setLoading(true);
         try {
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-            const { data } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/system-analytics`, config);
+            const { data } = await API.get('/api/v1/admin/system-analytics');
             setData(data);
         } catch (error) {
             message.error('Failed to load system analytics');

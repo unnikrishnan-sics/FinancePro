@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Card, Typography, message, theme } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import API from '../utils/axios';
 
 const { Title, Text } = Typography;
 
@@ -14,7 +14,7 @@ const Register = () => {
     const onFinish = async (values) => {
         setLoading(true);
         try {
-            const { data } = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/register`, values);
+            const { data } = await API.post('/api/auth/register', values);
             localStorage.setItem('userInfo', JSON.stringify(data));
             message.success('Registration successful!');
             navigate('/dashboard');

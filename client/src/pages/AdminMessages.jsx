@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Tag, Card, Tabs, Button, Typography, message, Tooltip, Space, Modal, Descriptions } from 'antd';
 import { CheckOutlined, MailOutlined, MessageOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import API from '../utils/axios';
 
 const { Title, Text } = Typography;
 
@@ -16,9 +16,7 @@ const AdminMessages = () => {
     const fetchMessages = async () => {
         setLoading(true);
         try {
-            const { data } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/support/all`, {
-                headers: { Authorization: `Bearer ${userInfo.token}` },
-            });
+            const { data } = await API.get('/api/v1/support/all');
             setMessages(data);
         } catch (error) {
             message.error('Failed to load messages');
@@ -34,9 +32,7 @@ const AdminMessages = () => {
     const markAsRead = async (id, e) => {
         e.stopPropagation(); // Prevent row click
         try {
-            await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/v1/support/${id}/read`, {}, {
-                headers: { Authorization: `Bearer ${userInfo.token}` },
-            });
+            await API.put(`/api/v1/support/${id}/read`, {});
             message.success('Marked as read');
 
             // Optimistic update

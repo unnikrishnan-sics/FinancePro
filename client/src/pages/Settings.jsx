@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Typography, Switch, Row, Col, Tooltip, Divider, Button, Slider, Radio, Tabs, Form, Input, message, InputNumber } from 'antd';
 import { CheckOutlined, FormatPainterOutlined, UserOutlined, SaveOutlined, LockOutlined, BellOutlined } from '@ant-design/icons';
 import { useTheme } from '../context/ThemeContext';
-import axios from 'axios';
+import API from '../utils/axios';
 
 const { Title, Text } = Typography;
 
@@ -31,15 +31,10 @@ const Settings = () => {
     const handleUpdateProfile = async (values) => {
         setLoading(true);
         try {
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-            const { data } = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, {
+            const { data } = await API.post('/api/auth/profile', {
                 userId: userInfo._id,
                 ...values
-            }, config);
+            });
 
             localStorage.setItem('userInfo', JSON.stringify(data));
             setUserInfo(data);

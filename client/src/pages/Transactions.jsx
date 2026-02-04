@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Tag, Button, Typography, message, Space, Input, DatePicker } from 'antd';
 import { PlusOutlined, SearchOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import API from '../utils/axios';
 import AddTransactionModal from '../components/AddTransactionModal';
 
 const { Title } = Typography;
@@ -21,13 +21,7 @@ const Transactions = () => {
     const fetchTransactions = async () => {
         setLoading(true);
         try {
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-            const { data } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/transactions/get-transactions`, config);
+            const { data } = await API.get('/api/v1/transactions/get-transactions');
             setTransactions(data);
         } catch (error) {
             message.error('Failed to fetch transactions');
@@ -38,13 +32,7 @@ const Transactions = () => {
 
     const handleDelete = async (id) => {
         try {
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/transactions/delete-transaction`, { transactionId: id }, config);
+            await API.post('/api/v1/transactions/delete-transaction', { transactionId: id });
             message.success('Transaction deleted');
             fetchTransactions();
         } catch (error) {

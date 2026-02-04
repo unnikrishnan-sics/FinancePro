@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import API from '../utils/axios';
 
 const { Title, Text } = Typography;
 
@@ -18,7 +18,7 @@ const ResetPassword = () => {
 
         setLoading(true);
         try {
-            await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/auth/resetpassword/${resetToken}`, {
+            await API.put(`/api/auth/resetpassword/${resetToken}`, {
                 password: values.password
             });
             message.success('Password reset successfully!');

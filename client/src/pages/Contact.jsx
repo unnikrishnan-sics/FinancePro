@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Typography, Row, Col, Card, Form, Input, Button, theme, message } from 'antd'; // Added message import
 import { MailOutlined, PhoneOutlined, EnvironmentOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import API from '../utils/axios';
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
@@ -15,7 +15,7 @@ const Contact = () => {
     const onFinish = async (values) => {
         setLoading(true);
         try {
-            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/support/contact`, values);
+            await API.post('/api/v1/support/contact', values);
             messageApi.success('Message sent successfully! We will get back to you soon.');
             form.resetFields();
         } catch (error) {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Statistic, Table, Button, Typography, Tag, message } from 'antd';
 import { UserOutlined, DollarOutlined, TransactionOutlined, EyeOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import API from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
@@ -19,11 +19,8 @@ const AdminDashboard = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-
-            const statsRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/stats`, config);
-            const usersRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/users`, config);
+            const statsRes = await API.get('/api/v1/admin/stats');
+            const usersRes = await API.get('/api/v1/admin/users');
 
             setStats(statsRes.data);
             setUsers(usersRes.data);

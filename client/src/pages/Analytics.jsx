@@ -5,7 +5,7 @@ import {
     BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
 import { RiseOutlined, FallOutlined, BulbOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import API from '../utils/axios';
 
 import { useTheme } from '../context/ThemeContext';
 
@@ -29,20 +29,13 @@ const Analytics = () => {
     const fetchAnalytics = async () => {
         setLoading(true);
         try {
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-
             let response;
             if (userId) {
                 // Admin viewing specific user
-                response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/analytics/admin-data`, { userId }, config);
+                response = await API.post('/api/v1/analytics/admin-data', { userId });
             } else {
                 // Normal user viewing themselves
-                response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/analytics/data`, config);
+                response = await API.get('/api/v1/analytics/data');
             }
 
             setData(response.data);

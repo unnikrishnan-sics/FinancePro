@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, Select, DatePicker, Button, message, InputNumber, Checkbox, Divider, theme } from 'antd';
-import axios from 'axios';
+import API from '../utils/axios';
 
 const { Option } = Select;
 
@@ -13,23 +13,16 @@ const AddTransactionModal = ({ visible, onClose, onAdd }) => {
     const handleSubmit = async (values) => {
         setLoading(true);
         try {
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-
             const endpoint = isRecurring
-                ? `${import.meta.env.VITE_API_BASE_URL}/api/v1/transactions/add-recurring`
-                : `${import.meta.env.VITE_API_BASE_URL}/api/v1/transactions/add-transaction`;
+                ? '/api/v1/transactions/add-recurring'
+                : '/api/v1/transactions/add-transaction';
 
-            await axios.post(endpoint, values, config);
+            await API.post(endpoint, values);
             message.success(isRecurring ? 'Recurring transaction set up!' : 'Transaction added successfully');
             try {
                 // Also trigger a check if it was recurring to make sure it shows up immediately if due
                 if (isRecurring) {
-                    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/transactions/check-recurring`, {}, config);
+                    await API.post('/api/v1/transactions/check-recurring', {});
                 }
             } catch (e) { }
 

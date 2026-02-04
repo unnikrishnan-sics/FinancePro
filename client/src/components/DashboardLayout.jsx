@@ -17,7 +17,7 @@ import {
     MessageOutlined
 } from '@ant-design/icons';
 import { Badge, Popover, List, message as antMessage } from 'antd';
-import axios from 'axios';
+import API from '../utils/axios';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -73,9 +73,8 @@ const DashboardLayout = () => {
     // Fetch Notifications
     const fetchNotifications = async () => {
         try {
-            const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/notifications/get-all-notification`,
-                { userId: userInfo._id }, // Note: passing userId in body as per controller, normally should be headers
-                { headers: { Authorization: `Bearer ${userInfo.token}` } }
+            const res = await API.post('/api/v1/notifications/get-all-notification',
+                { userId: userInfo._id }
             );
             setNotifications(res.data);
             setUnreadCount(res.data.filter(n => !n.read).length);
@@ -87,9 +86,8 @@ const DashboardLayout = () => {
     // Mark Read
     const handleRead = async () => {
         try {
-            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/notifications/mark-as-read`,
-                { userId: userInfo._id },
-                { headers: { Authorization: `Bearer ${userInfo.token}` } }
+            await API.post('/api/v1/notifications/mark-as-read',
+                { userId: userInfo._id }
             );
             setUnreadCount(0);
             fetchNotifications();

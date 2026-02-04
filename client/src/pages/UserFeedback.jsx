@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Form, Input, Button, Typography, message, Rate } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import API from '../utils/axios';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -17,14 +17,7 @@ const UserFeedback = () => {
     const onFinish = async (values) => {
         setLoading(true);
         try {
-            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/support/feedback`,
-                { message: values.message },
-                {
-                    headers: {
-                        Authorization: `Bearer ${userInfo.token}`,
-                    }
-                }
-            );
+            await API.post('/api/v1/support/feedback', { message: values.message });
             messageApi.success('Thank you for your feedback!');
             form.resetFields();
         } catch (error) {

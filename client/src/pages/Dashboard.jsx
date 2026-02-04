@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Row, Col, Card, Statistic, Typography, Table, Tag, Button, message, theme } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined, DollarOutlined, PlusOutlined } from '@ant-design/icons';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LineChart, Line, Legend } from 'recharts';
-import axios from 'axios';
+import API from '../utils/axios';
 import AddTransactionModal from '../components/AddTransactionModal';
 import { useTheme } from '../context/ThemeContext';
 
@@ -33,17 +33,10 @@ const Dashboard = () => {
     const fetchTransactions = async () => {
         setLoading(true);
         try {
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-
             // Trigger recurring check silently
-            axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/transactions/check-recurring`, {}, config).catch(() => { });
+            API.post('/api/v1/transactions/check-recurring', {}).catch(() => { });
 
-            const { data } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/transactions/get-transactions`, config);
+            const { data } = await API.get('/api/v1/transactions/get-transactions');
             setTransactions(data);
             calculateStats(data);
             prepareChartData(data);
@@ -151,13 +144,7 @@ const Dashboard = () => {
 
     const handleDelete = async (id) => {
         try {
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/v1/transactions/delete-transaction`, { transactionId: id }, config);
+            await API.post('/api/v1/transactions/delete-transaction', { transactionId: id });
             message.success('Transaction deleted');
             fetchTransactions();
         } catch (error) {
