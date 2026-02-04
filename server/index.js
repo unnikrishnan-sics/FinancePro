@@ -7,7 +7,16 @@ const seedAdmin = require('./utils/seeder');
 
 dotenv.config();
 
-connectDB();
+const startServer = async () => {
+    try {
+        await connectDB();
+        await seedAdmin();
+        console.log('🚀 Database connected and Admin seeded');
+    } catch (error) {
+        console.error('❌ Server initialization failed:', error);
+    }
+};
+startServer();
 
 const app = express();
 
@@ -47,8 +56,7 @@ app.use('/api/v1/notifications', require('./routes/notificationRoute'));
 app.use('/api/v1/admin', require('./routes/adminRoutes'));
 app.use('/api/v1/support', require('./routes/messageRoutes'));
 
-// Seed Admin
-seedAdmin();
+// Seed Admin removed from here as it is now in startServer();
 
 app.get('/', (req, res) => {
     res.send('API is running...');
