@@ -54,7 +54,16 @@ cd FinancePro
 
 ---
 
-### 2. Backend Setup (Server)
+### 2. Updating the Project
+If you have already cloned the repository and want to pull the latest changes:
+```bash
+git pull origin main
+```
+*Note: After pulling, remember to run `npm install` in both `client` and `server` directories if new packages were added.*
+
+---
+
+### 3. Backend Setup (Server)
 
 1.  Navigate to the server directory:
     ```bash
@@ -81,7 +90,7 @@ cd FinancePro
 
 ---
 
-### 3. Frontend Setup (Client)
+### 4. Frontend Setup (Client)
 
 1.  Open a **new** terminal window (keep the server running in the first one).
 2.  Navigate to the client directory:
@@ -100,6 +109,62 @@ cd FinancePro
     ```
     http://localhost:5173
     ```
+---
+
+## 🏗️ Project Architecture & Flow
+
+FinancePro follows a classic **MERN** architecture with a clear separation of concerns:
+
+```mermaid
+graph TD
+    User((User)) -->|Interacts| UI[React Frontend]
+    UI -->|API Requests| Express[Express Server]
+    Express -->|Middleware| Auth[JWT Auth]
+    Auth -->|Routes| Controllers[Controllers]
+    Controllers -->|CRUD Operations| Mongoose[Mongoose Models]
+    Mongoose -->|Persistent Data| MongoDB[(MongoDB)]
+```
+
+### Request Flow:
+1.  **Frontend**: User actions (like adding an expense) trigger an API call.
+2.  **API Layer**: The request hits an Express route (e.g., `/api/v1/transactions`).
+3.  **Middleware**: For protected routes, JWT tokens are verified.
+4.  **Controller**: The logic (e.g., `addTransaction`) processes data and interacts with the Model.
+5.  **Database**: Mongoose ensures data integrity and saves the record to MongoDB.
+6.  **Response**: The server sends back a JSON response to update the UI via Redux/State.
+
+---
+
+## 📦 User Modules & Functions
+
+### 1. Authentication Module (`authController.js`)
+Handles user lifecycle and security.
+- **`registerUser`**: Creates new user accounts.
+- **`loginUser`**: Authenticates users and returns a JWT.
+- **`updateUserProfile`**: Allows users to change name, email, password, and spending thresholds.
+- **`forgotPassword` / `resetPassword`**: Secure email-based recovery flow.
+
+### 2. Transaction Module (`transactionController.js`)
+The core of the financial tracking system.
+- **`addTransaction`**: Records income or expenses. Includes logic for **High-Value Alerts**.
+- **`getAllTransactions`**: Fetches user-specific history.
+- **`deleteTransaction`**: Safely removes records.
+
+### 3. Analytics & Predictive Module (`analyticsController.js`)
+Uses AI and math to provide financial insights.
+- **`getAnalyticsData`**: 
+    - **Linear Regression**: Predicts next month's spending based on history.
+    - **Anomaly Detection**: Identifies spikes in specific categories.
+    - **Recommendations**: Provides smart tips (e.g., "You spent 50% more on Food this month").
+
+### 4. Admin Module (`adminController.js`)
+System-wide oversight for authorized personnel.
+- **`getAllUsers`**: Monitors user growth.
+- **`getGlobalStats`**: Unified view of total system throughput.
+- **`getSystemAnalytics`**: High-level spending trends across the entire platform.
+
+### 5. Notification Module
+- Automated alerts for high-value transactions based on user-defined thresholds.
 
 ---
 
