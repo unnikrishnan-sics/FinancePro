@@ -45,7 +45,10 @@ const Register = () => {
                 >
                     <Form.Item
                         name="name"
-                        rules={[{ required: true, message: 'Please input your Full Name!' }]}
+                        rules={[
+                            { required: true, message: 'Please input your Full Name!' },
+                            { pattern: /^[a-zA-Z\s]+$/, message: 'Name must contain only letters and spaces' }
+                        ]}
                     >
                         <Input prefix={<UserOutlined />} placeholder="Full Name" />
                     </Form.Item>

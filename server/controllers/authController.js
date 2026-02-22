@@ -28,7 +28,9 @@ const loginUser = async (req, res) => {
             _id: user._id,
             name: user.name,
             email: user.email,
+            email: user.email,
             isAdmin: user.isAdmin,
+            highValueThreshold: user.highValueThreshold,
             token: generateToken(user._id),
         });
     } catch (error) {
@@ -42,6 +44,11 @@ const loginUser = async (req, res) => {
 // @access  Public
 const registerUser = async (req, res) => {
     const { name, email, password } = req.body;
+
+    if (!name || !/^[a-zA-Z\s]+$/.test(name)) {
+        res.status(400).json({ message: 'Name must contain only letters and spaces' });
+        return;
+    }
 
     const userExists = await User.findOne({ email });
 
@@ -62,6 +69,7 @@ const registerUser = async (req, res) => {
             name: user.name,
             email: user.email,
             isAdmin: user.isAdmin,
+            highValueThreshold: user.highValueThreshold,
             token: generateToken(user._id),
         });
     } else {

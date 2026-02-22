@@ -60,8 +60,8 @@ const DashboardLayout = () => {
 
     const userMenu = {
         items: [
-            { key: 'profile', label: 'My Profile', icon: <UserOutlined /> },
-            { key: 'settings', label: 'Settings', icon: <SettingOutlined /> },
+            { key: 'profile', label: 'My Profile', icon: <UserOutlined />, onClick: () => navigate('/dashboard/settings') },
+            { key: 'settings', label: 'Settings', icon: <SettingOutlined />, onClick: () => navigate('/dashboard/settings') },
             { type: 'divider' },
             { key: 'logout', label: 'Logout', icon: <LogoutOutlined />, onClick: handleLogout, danger: true },
         ]
