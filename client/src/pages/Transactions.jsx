@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Table, Tag, Button, Typography, message, Space, Input, DatePicker } from 'antd';
-import { PlusOutlined, SearchOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
+import { Card, Table, Tag, Button, Typography, message, Space, Input, DatePicker, Tooltip } from 'antd';
+import { PlusOutlined, SearchOutlined, DeleteOutlined, DownloadOutlined, EditOutlined } from '@ant-design/icons';
 import API from '../utils/axios';
 import AddTransactionModal from '../components/AddTransactionModal';
 
@@ -13,6 +13,7 @@ const Transactions = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [dateRange, setDateRange] = useState(null);
+    const [editingTransaction, setEditingTransaction] = useState(null);
 
     useEffect(() => {
         fetchTransactions();
@@ -38,6 +39,16 @@ const Transactions = () => {
         } catch (error) {
             message.error('Failed to delete transaction');
         }
+    };
+
+    const handleEdit = (record) => {
+        setEditingTransaction(record);
+        setIsModalVisible(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalVisible(false);
+        setEditingTransaction(null);
     };
 
     const handleExport = () => {
@@ -127,12 +138,23 @@ const Transactions = () => {
             title: 'Action',
             key: 'action',
             render: (_, record) => (
-                <Button
-                    type="text"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => handleDelete(record._id)}
-                />
+                <Space size="middle">
+                    <Tooltip title="Edit Transaction">
+                        <Button
+                            type="text"
+                            icon={<EditOutlined />}
+                            onClick={() => handleEdit(record)}
+                        />
+                    </Tooltip>
+                    <Tooltip title="Delete Transaction">
+                        <Button
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => handleDelete(record._id)}
+                        />
+                    </Tooltip>
+                </Space>
             ),
         },
     ];
@@ -192,8 +214,9 @@ const Transactions = () => {
 
             <AddTransactionModal
                 visible={isModalVisible}
-                onClose={() => setIsModalVisible(false)}
+                onClose={handleCloseModal}
                 onAdd={fetchTransactions}
+                editData={editingTransaction}
             />
         </div>
     );

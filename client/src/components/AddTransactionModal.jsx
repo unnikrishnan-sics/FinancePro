@@ -1,37 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, DatePicker, Button, message, InputNumber, Checkbox, Divider, theme } from 'antd';
 import API from '../utils/axios';
+import dayjs from 'dayjs';
 
 const { Option } = Select;
 
-const AddTransactionModal = ({ visible, onClose, onAdd }) => {
+const AddTransactionModal = ({ visible, onClose, onAdd, editData = null }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [isRecurring, setIsRecurring] = useState(false);
     const { token } = theme.useToken();
 
+    useEffect(() => {
+        if (editData && visible) {
+            form.setFieldsValue({
+                ...editData,
+                date: dayjs(editData.date),
+            });
+            setIsRecurring(false); // Can't switch to recurring during edit (for now)
+        } else {
+            form.resetFields();
+            setIsRecurring(false);
+        }
+    }, [editData, visible, form]);
+
     const handleSubmit = async (values) => {
         setLoading(true);
         try {
-            const endpoint = isRecurring
-                ? '/api/v1/transactions/add-recurring'
-                : '/api/v1/transactions/add-transaction';
+            if (editData) {
+                await API.post('/api/v1/transactions/edit-transaction', {
+                    ...values,
+                    transactionId: editData._id
+                });
+                message.success('Transaction updated successfully');
+            } else {
+                const endpoint = isRecurring
+                    ? '/api/v1/transactions/add-recurring'
+                    : '/api/v1/transactions/add-transaction';
 
-            await API.post(endpoint, values);
-            message.success(isRecurring ? 'Recurring transaction set up!' : 'Transaction added successfully');
-            try {
-                // Also trigger a check if it was recurring to make sure it shows up immediately if due
+                await API.post(endpoint, values);
+                message.success(isRecurring ? 'Recurring transaction set up!' : 'Transaction added successfully');
+
                 if (isRecurring) {
-                    await API.post('/api/v1/transactions/check-recurring', {});
+                    try {
+                        await API.post('/api/v1/transactions/check-recurring', {});
+                    } catch (e) { }
                 }
-            } catch (e) { }
+            }
 
             form.resetFields();
             setIsRecurring(false);
             onAdd();
             onClose();
         } catch (error) {
-            message.error('Failed to add transaction');
+            message.error(editData ? 'Failed to update transaction' : 'Failed to add transaction');
             console.error(error);
         } finally {
             setLoading(false);
@@ -40,7 +62,7 @@ const AddTransactionModal = ({ visible, onClose, onAdd }) => {
 
     return (
         <Modal
-            title="Add New Transaction"
+            title={editData ? "Edit Transaction" : "Add New Transaction"}
             open={visible}
             onCancel={onClose}
             footer={null}
@@ -66,7 +88,7 @@ const AddTransactionModal = ({ visible, onClose, onAdd }) => {
                 </Form.Item>
 
                 <Form.Item name="amount" label="Amount" rules={[{ required: true, message: 'Enter amount' }]}>
-                    <InputNumber style={{ width: '100%' }} min={0} prefix="$" />
+                    <InputNumber style={{ width: '100%' }} min={0} max={9999999999999} prefix="$" />
                 </Form.Item>
 
                 <Form.Item name="date" label="Date" rules={[{ required: true, message: 'Select date' }]}>
@@ -77,15 +99,18 @@ const AddTransactionModal = ({ visible, onClose, onAdd }) => {
                     <Input />
                 </Form.Item>
 
-                <Divider style={{ margin: '12px 0' }} />
+                {!editData && (
+                    <>
+                        <Divider style={{ margin: '12px 0' }} />
+                        <Form.Item name="isRecurring" valuePropName="checked">
+                            <Checkbox onChange={e => setIsRecurring(e.target.checked)}>
+                                This is a recurring transaction (Subscription, Rent, etc.)
+                            </Checkbox>
+                        </Form.Item>
+                    </>
+                )}
 
-                <Form.Item name="isRecurring" valuePropName="checked">
-                    <Checkbox onChange={e => setIsRecurring(e.target.checked)}>
-                        This is a recurring transaction (Subscription, Rent, etc.)
-                    </Checkbox>
-                </Form.Item>
-
-                {isRecurring && (
+                {isRecurring && !editData && (
                     <div style={{ padding: '12px', background: token.colorFillAlter, borderRadius: '8px', marginBottom: '16px' }}>
                         <Form.Item
                             name="frequency"
@@ -103,7 +128,7 @@ const AddTransactionModal = ({ visible, onClose, onAdd }) => {
 
                 <Form.Item>
                     <Button type="primary" htmlType="submit" loading={loading} block>
-                        {isRecurring ? 'Set Up Recurring Payment' : 'Add Transaction'}
+                        {editData ? 'Update Transaction' : (isRecurring ? 'Set Up Recurring Payment' : 'Add Transaction')}
                     </Button>
                 </Form.Item>
             </Form>

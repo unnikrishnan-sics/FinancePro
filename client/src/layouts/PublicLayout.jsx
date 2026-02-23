@@ -46,7 +46,7 @@ const PublicLayout = () => {
                     style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
                     onClick={() => navigate('/')}
                 >
-                    <img src="/src/assets/logo.png" alt="Logo" style={{ height: 40 }} />
+                    <img src="/logo.png" alt="Logo" style={{ height: 40 }} />
                 </div>
 
                 {/* Desktop Menu */}

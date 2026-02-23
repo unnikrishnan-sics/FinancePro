@@ -44,7 +44,7 @@ const getAnalyticsData = async (req, res) => {
 
         transactions.forEach(t => {
             const date = new Date(t.date);
-            const key = `${date.getFullYear()}-${date.getMonth() + 1}`; // "2024-5"
+            const key = `${date.getUTCFullYear()}-${date.getUTCMonth() + 1}`; // "2024-5"
 
             if (!monthlyData[key]) {
                 monthlyData[key] = {
@@ -92,7 +92,8 @@ const getAnalyticsData = async (req, res) => {
         const categoryMonthlyStats = {};
         transactions.forEach(t => {
             if (t.type === 'expense') {
-                const mKey = `${new Date(t.date).getFullYear()}-${new Date(t.date).getMonth()}`;
+                const date = new Date(t.date);
+                const mKey = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
                 if (!categoryMonthlyStats[t.category]) categoryMonthlyStats[t.category] = {};
                 if (!categoryMonthlyStats[t.category][mKey]) categoryMonthlyStats[t.category][mKey] = 0;
                 categoryMonthlyStats[t.category][mKey] += t.amount;
@@ -103,11 +104,12 @@ const getAnalyticsData = async (req, res) => {
         const currentMonthData = {};
         // Re-calculate strictly for "this month" to compare
         const now = new Date();
-        transactions.filter(t =>
-            new Date(t.date).getMonth() === now.getMonth() &&
-            new Date(t.date).getFullYear() === now.getFullYear() &&
-            t.type === 'expense'
-        ).forEach(t => {
+        transactions.filter(t => {
+            const date = new Date(t.date);
+            return date.getUTCMonth() === now.getUTCMonth() &&
+                date.getUTCFullYear() === now.getUTCFullYear() &&
+                t.type === 'expense';
+        }).forEach(t => {
             currentMonthData[t.category] = (currentMonthData[t.category] || 0) + t.amount;
         });
 

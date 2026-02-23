@@ -4,31 +4,36 @@ const Transaction = require('../models/transactionModel');
 // @desc    Add new recurring transaction template
 const addRecurringTransaction = async (req, res) => {
     try {
-        const { amount, type, category, description, frequency } = req.body;
+        const { amount, type, category, description, frequency, date } = req.body;
+
+        // Validation
+        if (!amount || !type || !category || !frequency) {
+            return res.status(400).json({ message: 'Please provide all required fields' });
+        }
+
         const recurring = await Recurring.create({
             user: req.user.id,
-            amount,
+            amount: Number(amount),
             type,
             category,
-            description,
+            description: description || '',
             frequency,
-            lastGenerated: new Date() // Set to now, so next one is generated next month/year
+            lastGenerated: date ? new Date(date) : new Date()
         });
 
-        // Also create the FIRST transaction immediately? 
-        // Usually users expect "I paid this just now, and want it to repeat".
-        // Let's create the first one now.
+        // Create the FIRST transaction immediately using the provided date or now
         await Transaction.create({
             user: req.user.id,
             amount: Number(amount),
             type,
             category,
-            description: `${description} (Recurring)`,
-            date: new Date()
+            description: description ? `${description} (Recurring)` : `(Recurring)`,
+            date: date ? new Date(date) : new Date()
         });
 
         res.status(201).json(recurring);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Error adding recurring', error });
     }
 };

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Statistic, Table, Button, Typography, Tag, message } from 'antd';
 import { UserOutlined, DollarOutlined, TransactionOutlined, EyeOutlined } from '@ant-design/icons';
 import API from '../utils/axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const { Title } = Typography;
 
@@ -11,6 +11,10 @@ const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Get current page from URL, default to 1
+    const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
     useEffect(() => {
         fetchData();
@@ -29,6 +33,11 @@ const AdminDashboard = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleTableChange = (pagination) => {
+        // Update URL with new page number
+        setSearchParams({ page: pagination.current });
     };
 
     const columns = [
@@ -115,7 +124,11 @@ const AdminDashboard = () => {
                     columns={columns}
                     rowKey="_id"
                     loading={loading}
-                    pagination={{ pageSize: 5 }}
+                    onChange={handleTableChange}
+                    pagination={{
+                        current: currentPage,
+                        pageSize: 5
+                    }}
                 />
             </Card>
         </div>

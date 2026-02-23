@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Statistic, Typography, Table, Tag, Button, message, theme } from 'antd';
-import { ArrowUpOutlined, ArrowDownOutlined, DollarOutlined, PlusOutlined } from '@ant-design/icons';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LineChart, Line, Legend } from 'recharts';
+import { Row, Col, Card, Statistic, Typography, Table, Tag, Button, message, theme, Tooltip, Space } from 'antd';
+import { ArrowUpOutlined, ArrowDownOutlined, DollarOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, LineChart, Line, Legend } from 'recharts';
 import API from '../utils/axios';
 import AddTransactionModal from '../components/AddTransactionModal';
 import { useTheme } from '../context/ThemeContext';
@@ -15,6 +15,7 @@ const Dashboard = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const { token } = theme.useToken();
     const { chartType } = useTheme();
+    const [editingTransaction, setEditingTransaction] = useState(null);
 
     // Stats
     const [totalBalance, setTotalBalance] = useState(0);
@@ -85,17 +86,20 @@ const Dashboard = () => {
         const cData = sortedData.map(item => ({
             ...item,
             date: new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-            // Use absolute amount for visualization if needed, or keep net
-            // For "Spending Analytics", showing Net Daily Change is often good, or just Expense.
-            // Let's show Net Change since the previous chart was just +/- amounts.
-            // Or better: Let's track Cumulative Balance for a smoother line?
-            // The user expectation is likely "Trend". Let's toggle between Net Change.
-            // Actually, previous implementation just plotted amounts.
-            // Let's stick to Net Amount (Income - Expense) for the day.
             amount: item.income - item.expense
         }));
 
         setChartData(cData.slice(-10)); // Show last 10 days
+    };
+
+    const handleEdit = (record) => {
+        setEditingTransaction(record);
+        setIsModalVisible(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalVisible(false);
+        setEditingTransaction(null);
     };
 
     const columns = [
@@ -130,14 +134,26 @@ const Dashboard = () => {
             title: 'Action',
             key: 'action',
             render: (_, record) => (
-                <Button
-                    type="text"
-                    danger
-                    size="small"
-                    onClick={() => handleDelete(record._id)}
-                >
-                    Delete
-                </Button>
+                <Space>
+                    <Tooltip title="Edit Transaction">
+                        <Button
+                            type="text"
+                            size="small"
+                            icon={<EditOutlined />}
+                            onClick={() => handleEdit(record)}
+                        />
+                    </Tooltip>
+                    <Tooltip title="Delete Transaction">
+                        <Button
+                            type="text"
+                            danger
+                            size="small"
+                            onClick={() => handleDelete(record._id)}
+                        >
+                            Delete
+                        </Button>
+                    </Tooltip>
+                </Space>
             ),
         },
     ];
@@ -221,7 +237,7 @@ const Dashboard = () => {
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                         <XAxis dataKey="date" />
                                         <YAxis />
-                                        <Tooltip />
+                                        <RechartsTooltip />
                                         <Legend />
                                         <Bar dataKey="income" fill="#52c41a" name="Income" radius={[4, 4, 0, 0]} />
                                         <Bar dataKey="expense" fill="#f5222d" name="Expenses" radius={[4, 4, 0, 0]} />
@@ -231,7 +247,7 @@ const Dashboard = () => {
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                         <XAxis dataKey="date" />
                                         <YAxis />
-                                        <Tooltip />
+                                        <RechartsTooltip />
                                         <Legend />
                                         <Line type="monotone" dataKey="income" stroke="#52c41a" strokeWidth={3} dot={{ r: 4 }} name="Income" />
                                         <Line type="monotone" dataKey="expense" stroke="#f5222d" strokeWidth={3} dot={{ r: 4 }} name="Expenses" />
@@ -251,7 +267,7 @@ const Dashboard = () => {
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                         <XAxis dataKey="date" />
                                         <YAxis />
-                                        <Tooltip />
+                                        <RechartsTooltip />
                                         <Legend />
                                         <Area type="monotone" dataKey="income" stroke="#52c41a" fillOpacity={1} fill="url(#colorIncome)" name="Income" />
                                         <Area type="monotone" dataKey="expense" stroke="#f5222d" fillOpacity={1} fill="url(#colorExpense)" name="Expenses" />
@@ -278,8 +294,9 @@ const Dashboard = () => {
 
             <AddTransactionModal
                 visible={isModalVisible}
-                onClose={() => setIsModalVisible(false)}
+                onClose={handleCloseModal}
                 onAdd={fetchTransactions}
+                editData={editingTransaction}
             />
         </div>
     );

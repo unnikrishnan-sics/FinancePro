@@ -180,9 +180,7 @@ const Settings = () => {
         </Card>
     );
 
-    const items = userInfo.isAdmin ? [
-        { key: '2', label: 'Appearance', children: <AppearanceSettings /> },
-    ] : [
+    const items = [
         { key: '1', label: 'My Profile', children: <ProfileSettings /> },
         { key: '2', label: 'Appearance', children: <AppearanceSettings /> },
     ];
@@ -190,7 +188,7 @@ const Settings = () => {
     return (
         <div>
             <Title level={3} style={{ marginBottom: 24 }}>Settings</Title>
-            <Tabs defaultActiveKey={userInfo.isAdmin ? '2' : '1'} items={items} type="card" size="large" />
+            <Tabs defaultActiveKey="1" items={items} type="card" size="large" />
         </div>
     );
 };

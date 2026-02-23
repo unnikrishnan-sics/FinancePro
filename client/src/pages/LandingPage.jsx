@@ -43,9 +43,6 @@ const LandingPage = () => {
                         <Button type="primary" size="large" onClick={() => navigate('/register')} style={{ height: 50, padding: '0 32px', fontSize: 16 }}>
                             Start Your Journey
                         </Button>
-                        <Button size="large" style={{ height: 50, padding: '0 32px', fontSize: 16 }}>
-                            View Demo
-                        </Button>
                     </Space>
                 </div>
             </div>

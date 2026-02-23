@@ -85,4 +85,52 @@ const deleteTransaction = async (req, res) => {
     }
 };
 
-module.exports = { getAllTransactions, addTransaction, deleteTransaction };
+// @desc    Update transaction
+// @route   POST /api/v1/transactions/edit-transaction
+// @access  Private
+const editTransaction = async (req, res) => {
+    try {
+        const { transactionId, amount, type, category, description, date } = req.body;
+
+        const transaction = await Transaction.findById(transactionId);
+
+        if (!transaction) {
+            return res.status(404).json({ message: 'Transaction not found' });
+        }
+
+        // Ensure user owns transaction
+        if (transaction.user.toString() !== req.user.id) {
+            return res.status(401).json({ message: 'User not authorized' });
+        }
+
+        // Update fields
+        transaction.amount = amount || transaction.amount;
+        transaction.type = type || transaction.type;
+        transaction.category = category || transaction.category;
+        transaction.description = description || transaction.description;
+        transaction.date = date || transaction.date;
+
+        await transaction.save();
+
+        // --- Notification Logic --- (same as add)
+        if (type === 'expense' || transaction.type === 'expense') {
+            const user = await User.findById(req.user.id);
+            const threshold = user.highValueThreshold || 1000;
+
+            if (Number(amount) > threshold) {
+                await Notification.create({
+                    user: req.user.id,
+                    message: `High Spending Alert (Updated): You spent $${amount} on ${category}. This exceeds your limit of $${threshold}.`,
+                    type: 'warning'
+                });
+            }
+        }
+
+        res.status(200).json(transaction);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Error updating transaction', error });
+    }
+};
+
+module.exports = { getAllTransactions, addTransaction, deleteTransaction, editTransaction };

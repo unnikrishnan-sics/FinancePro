@@ -58,13 +58,22 @@ const DashboardLayout = () => {
         }
     }, [userInfo, location, navigate]);
 
+    const handleUserMenuClick = ({ key }) => {
+        if (key === 'logout') {
+            handleLogout();
+        } else if (key === 'profile' || key === 'settings') {
+            navigate('/dashboard/settings');
+        }
+    };
+
     const userMenu = {
         items: [
-            { key: 'profile', label: 'My Profile', icon: <UserOutlined />, onClick: () => navigate('/dashboard/settings') },
-            { key: 'settings', label: 'Settings', icon: <SettingOutlined />, onClick: () => navigate('/dashboard/settings') },
+            { key: 'profile', label: 'My Profile', icon: <UserOutlined /> },
+            { key: 'settings', label: 'Settings', icon: <SettingOutlined /> },
             { type: 'divider' },
-            { key: 'logout', label: 'Logout', icon: <LogoutOutlined />, onClick: handleLogout, danger: true },
-        ]
+            { key: 'logout', label: 'Logout', icon: <LogoutOutlined />, danger: true },
+        ],
+        onClick: handleUserMenuClick
     };
 
     const [notifications, setNotifications] = useState([]);
