@@ -42,7 +42,9 @@ const AdminMessages = () => {
         }
     };
 
-    const handleRowClick = (record) => {
+    const openMessageDetailsModal = (record) => {
+        console.log('Opening message details modal for record:', record);
+        console.trace('Modal trigger trace:');
         setSelectedMessage(record);
         setIsModalOpen(true);
     };
@@ -52,36 +54,54 @@ const AdminMessages = () => {
             title: 'Status',
             dataIndex: 'read',
             width: 100,
+            onCell: () => ({ onClick: (e) => e.stopPropagation() }),
             render: (read) => (
-                <Tag color={read ? 'default' : 'red'}>
+                <span
+                    style={{ color: read ? '#64748b' : '#ef4444', fontWeight: 500 }}
+                    onClick={(e) => e.stopPropagation()}
+                >
                     {read ? 'Read' : 'New'}
-                </Tag>
+                </span>
             ),
         },
         {
             title: 'Type',
             dataIndex: 'type',
             width: 120,
+            onCell: () => ({ onClick: (e) => e.stopPropagation() }),
             render: (type) => (
-                <Tag color={type === 'CONTACT' ? 'blue' : 'purple'} icon={type === 'CONTACT' ? <MailOutlined /> : <MessageOutlined />}>
+                <span
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        fontWeight: 500,
+                        color: type === 'CONTACT' ? '#3b82f6' : '#a855f7'
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {type === 'CONTACT' ? <MailOutlined /> : <MessageOutlined />}
                     {type}
-                </Tag>
+                </span>
             ),
         },
         {
             title: 'Name',
             dataIndex: 'name',
             width: 150,
+            onCell: () => ({ onClick: (e) => e.stopPropagation() }),
         },
         {
             title: 'Email',
             dataIndex: 'email',
             width: 200,
+            onCell: () => ({ onClick: (e) => e.stopPropagation() }),
         },
         {
             title: 'Message',
             dataIndex: 'message',
             ellipsis: true,
+            onCell: () => ({ onClick: (e) => e.stopPropagation() }),
             render: (text) => (
                 <span>
                     {text.substring(0, 50)}...
@@ -92,6 +112,7 @@ const AdminMessages = () => {
             title: 'Date',
             dataIndex: 'createdAt',
             width: 150,
+            onCell: () => ({ onClick: (e) => e.stopPropagation() }),
             render: (date) => new Date(date).toLocaleDateString(),
             sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
         },
@@ -105,7 +126,7 @@ const AdminMessages = () => {
                         <Button
                             type="text"
                             icon={<EyeOutlined />}
-                            onClick={(e) => { e.stopPropagation(); handleRowClick(record); }}
+                            onClick={(e) => { e.stopPropagation(); openMessageDetailsModal(record); }}
                         />
                     </Tooltip>
                     {!record.read && (

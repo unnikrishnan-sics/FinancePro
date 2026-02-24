@@ -42,14 +42,14 @@ const DashboardLayout = () => {
     const menuItems = userInfo.isAdmin ? [
         { key: '/dashboard/admin', icon: <AppstoreOutlined />, label: 'Admin Dashboard' },
         { key: '/dashboard/admin/system-analytics', icon: <PieChartOutlined />, label: 'System Analytics' },
-        // { key: '/dashboard/admin/messages', icon: <MessageOutlined />, label: 'Messages' },
-        // { key: '/dashboard/settings', icon: <SettingOutlined />, label: 'Settings' },
+        { key: '/dashboard/admin/messages', icon: <MessageOutlined />, label: 'Messages' },
+        { key: '/dashboard/settings', icon: <SettingOutlined />, label: 'Settings' },
     ] : [
         { key: '/dashboard', icon: <AppstoreOutlined />, label: 'Overview' },
         { key: '/dashboard/transactions', icon: <WalletOutlined />, label: 'Transactions' },
         { key: '/dashboard/analytics', icon: <PieChartOutlined />, label: 'Analytics' },
-        // { key: '/dashboard/feedback', icon: <MessageOutlined />, label: 'Feedback' },
-        // { key: '/dashboard/settings', icon: <SettingOutlined />, label: 'Settings' },
+        { key: '/dashboard/feedback', icon: <MessageOutlined />, label: 'Feedback' },
+        { key: '/dashboard/settings', icon: <SettingOutlined />, label: 'Settings' },
     ];
 
     React.useEffect(() => {
@@ -62,7 +62,7 @@ const DashboardLayout = () => {
         if (key === 'logout') {
             handleLogout();
         } else if (key === 'profile' 
-            // || key === 'settings'
+            || key === 'settings'
         ) {
             navigate('/dashboard/settings');
         }
