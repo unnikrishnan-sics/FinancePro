@@ -27,9 +27,14 @@ const AddTransactionModal = ({ visible, onClose, onAdd, editData = null }) => {
     const handleSubmit = async (values) => {
         setLoading(true);
         try {
+            const payload = {
+                ...values,
+                date: values.date ? values.date.format('YYYY-MM-DD') : undefined
+            };
+
             if (editData) {
                 await API.post('/api/v1/transactions/edit-transaction', {
-                    ...values,
+                    ...payload,
                     transactionId: editData._id
                 });
                 message.success('Transaction updated successfully');
@@ -38,7 +43,7 @@ const AddTransactionModal = ({ visible, onClose, onAdd, editData = null }) => {
                     ? '/api/v1/transactions/add-recurring'
                     : '/api/v1/transactions/add-transaction';
 
-                await API.post(endpoint, values);
+                await API.post(endpoint, payload);
                 message.success(isRecurring ? 'Recurring transaction set up!' : 'Transaction added successfully');
 
                 if (isRecurring) {

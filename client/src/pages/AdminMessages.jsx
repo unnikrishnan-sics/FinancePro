@@ -83,7 +83,7 @@ const AdminMessages = () => {
             dataIndex: 'message',
             ellipsis: true,
             render: (text) => (
-                <span style={{ cursor: 'pointer', color: '#1677ff' }}>
+                <span>
                     {text.substring(0, 50)}...
                 </span>
             ),
@@ -136,10 +136,6 @@ const AdminMessages = () => {
                     rowKey="_id"
                     loading={loading}
                     pagination={{ pageSize: 10 }}
-                    onRow={(record) => ({
-                        onClick: () => handleRowClick(record),
-                        style: { cursor: 'pointer' }
-                    })}
                 />
             </Card>
 

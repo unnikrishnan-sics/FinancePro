@@ -44,11 +44,14 @@ const getAnalyticsData = async (req, res) => {
 
         transactions.forEach(t => {
             const date = new Date(t.date);
-            const key = `${date.getUTCFullYear()}-${date.getUTCMonth() + 1}`; // "2024-5"
+            const year = date.getUTCFullYear();
+            const month = date.getUTCMonth() + 1;
+            const key = `${year}-${month}`; // Consistent with reproduction
 
             if (!monthlyData[key]) {
+                const monthName = date.toLocaleString('default', { month: 'short', timeZone: 'UTC' });
                 monthlyData[key] = {
-                    month: date.toLocaleString('default', { month: 'short' }),
+                    month: monthName,
                     income: 0,
                     expense: 0
                 };
@@ -104,10 +107,13 @@ const getAnalyticsData = async (req, res) => {
         const currentMonthData = {};
         // Re-calculate strictly for "this month" to compare
         const now = new Date();
+        const currentUTCMonth = now.getUTCMonth();
+        const currentUTCYear = now.getUTCFullYear();
+
         transactions.filter(t => {
             const date = new Date(t.date);
-            return date.getUTCMonth() === now.getUTCMonth() &&
-                date.getUTCFullYear() === now.getUTCFullYear() &&
+            return date.getUTCMonth() === currentUTCMonth &&
+                date.getUTCFullYear() === currentUTCYear &&
                 t.type === 'expense';
         }).forEach(t => {
             currentMonthData[t.category] = (currentMonthData[t.category] || 0) + t.amount;
