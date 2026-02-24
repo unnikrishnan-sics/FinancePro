@@ -61,7 +61,9 @@ const DashboardLayout = () => {
     const handleUserMenuClick = ({ key }) => {
         if (key === 'logout') {
             handleLogout();
-        } else if (key === 'profile' || key === 'settings') {
+        } else if (key === 'profile' 
+            // || key === 'settings'
+        ) {
             navigate('/dashboard/settings');
         }
     };
