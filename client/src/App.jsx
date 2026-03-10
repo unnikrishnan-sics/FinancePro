@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import Reports from './pages/Reports';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminSystemAnalytics from './pages/AdminSystemAnalytics';
 import UserFeedback from './pages/UserFeedback';
@@ -79,6 +80,7 @@ const AppContent = () => {
               <Route index element={<Dashboard />} />
               <Route path="transactions" element={<Transactions />} />
               <Route path="analytics" element={<Analytics />} />
+              <Route path="reports" element={<Reports />} />
               <Route path="settings" element={<Settings />} />
               <Route path="feedback" element={<UserFeedback />} />
               <Route path="admin" element={<AdminDashboard />} />

@@ -5,11 +5,29 @@ import dayjs from 'dayjs';
 
 const { Option } = Select;
 
+const INCOME_CATEGORIES = [
+    { label: 'Salary', value: 'salary' },
+    { label: 'Investment', value: 'investment' },
+    { label: 'Other', value: 'other' },
+];
+
+const EXPENSE_CATEGORIES = [
+    { label: 'Food', value: 'food' },
+    { label: 'Transport', value: 'transport' },
+    { label: 'Entertainment', value: 'entertainment' },
+    { label: 'Utilities', value: 'utilities' },
+    { label: 'Investment', value: 'investment' },
+    { label: 'Other', value: 'other' },
+];
+
 const AddTransactionModal = ({ visible, onClose, onAdd, editData = null }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [isRecurring, setIsRecurring] = useState(false);
     const { token } = theme.useToken();
+
+    // Watch values for conditional rendering/filtering
+    const type = Form.useWatch('type', form);
 
     useEffect(() => {
         if (editData && visible) {
@@ -23,6 +41,19 @@ const AddTransactionModal = ({ visible, onClose, onAdd, editData = null }) => {
             setIsRecurring(false);
         }
     }, [editData, visible, form]);
+
+    // Reset category if it's not valid for the new type
+    useEffect(() => {
+        if (type) {
+            const currentCategory = form.getFieldValue('category');
+            const validCategories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+            const isValid = validCategories.some(cat => cat.value === currentCategory);
+
+            if (currentCategory && !isValid) {
+                form.setFieldsValue({ category: undefined });
+            }
+        }
+    }, [type, form]);
 
     const handleSubmit = async (values) => {
         setLoading(true);
@@ -65,6 +96,8 @@ const AddTransactionModal = ({ visible, onClose, onAdd, editData = null }) => {
         }
     };
 
+    const categoriesToShow = type === 'income' ? INCOME_CATEGORIES : (type === 'expense' ? EXPENSE_CATEGORIES : []);
+
     return (
         <Modal
             title={editData ? "Edit Transaction" : "Add New Transaction"}
@@ -81,14 +114,10 @@ const AddTransactionModal = ({ visible, onClose, onAdd, editData = null }) => {
                 </Form.Item>
 
                 <Form.Item name="category" label="Category" rules={[{ required: true, message: 'Select category' }]}>
-                    <Select placeholder="Select category">
-                        <Option value="salary">Salary</Option>
-                        <Option value="food">Food</Option>
-                        <Option value="transport">Transport</Option>
-                        <Option value="entertainment">Entertainment</Option>
-                        <Option value="utilities">Utilities</Option>
-                        <Option value="investment">Investment</Option>
-                        <Option value="other">Other</Option>
+                    <Select placeholder="Select category" disabled={!type}>
+                        {categoriesToShow.map(cat => (
+                            <Option key={cat.value} value={cat.value}>{cat.label}</Option>
+                        ))}
                     </Select>
                 </Form.Item>
 

@@ -232,4 +232,72 @@ const getAnalyticsData = async (req, res) => {
     }
 };
 
-module.exports = { getAnalyticsData };
+// @desc    Get Detailed Monthly Report
+// @route   GET /api/v1/analytics/monthly-report
+// @access  Private
+const getMonthlyReport = async (req, res) => {
+    try {
+        const { month, year } = req.query;
+
+        if (!month || !year) {
+            return res.status(400).json({ message: 'Please provide month and year' });
+        }
+
+        const startDate = new Date(Date.UTC(year, month - 1, 1));
+        const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+
+        const transactions = await Transaction.find({
+            user: req.user.id,
+            date: { $gte: startDate, $lte: endDate }
+        }).sort({ date: 1 });
+
+        let totalIncome = 0;
+        let totalExpense = 0;
+        const categoryData = {};
+        const dailyData = {};
+
+        // Prepare daily trend structure
+        const daysInMonth = new Date(year, month, 0).getDate();
+        for (let i = 1; i <= daysInMonth; i++) {
+            dailyData[i] = { day: i, income: 0, expense: 0 };
+        }
+
+        transactions.forEach(t => {
+            if (t.type === 'income') {
+                totalIncome += t.amount;
+            } else {
+                totalExpense += t.amount;
+                categoryData[t.category] = (categoryData[t.category] || 0) + t.amount;
+            }
+
+            const day = new Date(t.date).getUTCDate();
+            if (dailyData[day]) {
+                dailyData[day][t.type] += t.amount;
+            }
+        });
+
+        const expenseByCategory = Object.entries(categoryData)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value);
+
+        const dailyTrend = Object.values(dailyData);
+
+        res.status(200).json({
+            summary: {
+                totalIncome,
+                totalExpense,
+                savings: totalIncome - totalExpense,
+                monthName: startDate.toLocaleString('default', { month: 'long', timeZone: 'UTC' }),
+                year
+            },
+            expenseByCategory,
+            dailyTrend,
+            transactions
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Error generating monthly report', error });
+    }
+};
+
+module.exports = { getAnalyticsData, getMonthlyReport };

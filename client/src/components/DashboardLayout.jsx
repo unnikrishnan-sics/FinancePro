@@ -14,7 +14,8 @@ import {
     MenuUnfoldOutlined,
     NotificationOutlined,
     CheckCircleOutlined,
-    MessageOutlined
+    MessageOutlined,
+    FileTextOutlined
 } from '@ant-design/icons';
 import { Badge, Popover, List, message as antMessage } from 'antd';
 import API from '../utils/axios';
@@ -48,6 +49,7 @@ const DashboardLayout = () => {
         { key: '/dashboard', icon: <AppstoreOutlined />, label: 'Overview' },
         { key: '/dashboard/transactions', icon: <WalletOutlined />, label: 'Transactions' },
         { key: '/dashboard/analytics', icon: <PieChartOutlined />, label: 'Analytics' },
+        { key: '/dashboard/reports', icon: <FileTextOutlined />, label: 'Reports' },
         { key: '/dashboard/feedback', icon: <MessageOutlined />, label: 'Feedback' },
         { key: '/dashboard/settings', icon: <SettingOutlined />, label: 'Settings' },
     ];
@@ -61,7 +63,7 @@ const DashboardLayout = () => {
     const handleUserMenuClick = ({ key }) => {
         if (key === 'logout') {
             handleLogout();
-        } else if (key === 'profile' 
+        } else if (key === 'profile'
             || key === 'settings'
         ) {
             navigate('/dashboard/settings');
