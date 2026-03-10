@@ -17,7 +17,7 @@ import {
     MessageOutlined,
     FileTextOutlined
 } from '@ant-design/icons';
-import { Badge, Popover, List, message as antMessage } from 'antd';
+import { Badge, Popover, List } from 'antd';
 import API from '../utils/axios';
 
 const { Header, Sider, Content } = Layout;
@@ -29,7 +29,7 @@ const DashboardLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
     const { darkMode } = useTheme();
     const {
-        token: { colorBgContainer, colorBgLayout, borderRadiusLG, colorPrimary, colorBorder },
+        token: { colorBgContainer, colorBgLayout, colorPrimary },
     } = theme.useToken();
 
 
@@ -84,7 +84,7 @@ const DashboardLayout = () => {
     const [unreadCount, setUnreadCount] = useState(0);
 
     // Fetch Notifications
-    const fetchNotifications = async () => {
+    const fetchNotifications = React.useCallback(async () => {
         try {
             const res = await API.post('/api/v1/notifications/get-all-notification',
                 { userId: userInfo._id }
@@ -94,7 +94,7 @@ const DashboardLayout = () => {
         } catch (error) {
             console.error('Error fetching notifications', error);
         }
-    };
+    }, [userInfo._id]);
 
     // Mark Read
     const handleRead = async () => {
@@ -112,7 +112,7 @@ const DashboardLayout = () => {
     // Initial Fetch
     React.useEffect(() => {
         if (userInfo._id) fetchNotifications();
-    }, []);
+    }, [userInfo._id, fetchNotifications]);
 
     const notificationContent = (
         <div style={{ width: 300, maxHeight: 400, overflowY: 'auto' }}>

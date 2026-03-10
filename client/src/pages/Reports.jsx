@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Typography, Table, DatePicker, Button, message, theme, Space, Tag, Divider } from 'antd';
+import { Card, Row, Col, Statistic, Typography, Table, DatePicker, Button, message, Space, Tag, Divider } from 'antd';
 import { DollarOutlined, ArrowUpOutlined, ArrowDownOutlined, DownloadOutlined, FileTextOutlined } from '@ant-design/icons';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import API from '../utils/axios';
@@ -12,25 +12,24 @@ const Reports = () => {
     const [selectedDate, setSelectedDate] = useState(dayjs());
     const [loading, setLoading] = useState(false);
     const [reportData, setReportData] = useState(null);
-    const { token } = theme.useToken();
 
-    useEffect(() => {
-        fetchReport();
-    }, [selectedDate]);
-
-    const fetchReport = async () => {
+    const fetchReport = React.useCallback(async () => {
         setLoading(true);
         try {
             const month = selectedDate.month() + 1;
             const year = selectedDate.year();
             const { data } = await API.get(`/api/v1/analytics/monthly-report?month=${month}&year=${year}`);
             setReportData(data);
-        } catch (error) {
+        } catch {
             message.error('Failed to fetch report data');
         } finally {
             setLoading(false);
         }
-    };
+    }, [selectedDate]);
+
+    useEffect(() => {
+        fetchReport();
+    }, [fetchReport]);
 
     const handleExport = () => {
         if (!reportData || !reportData.transactions.length) {

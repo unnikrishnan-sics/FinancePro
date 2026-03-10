@@ -80,7 +80,9 @@ const AddTransactionModal = ({ visible, onClose, onAdd, editData = null }) => {
                 if (isRecurring) {
                     try {
                         await API.post('/api/v1/transactions/check-recurring', {});
-                    } catch (e) { }
+                    } catch (err) {
+                        console.error('Error checking recurring transactions', err);
+                    }
                 }
             }
 
