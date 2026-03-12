@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Statistic, Table, Button, Typography, Tag, message } from 'antd';
-import { UserOutlined, DollarOutlined, TransactionOutlined, EyeOutlined } from '@ant-design/icons';
+import { UserOutlined, TransactionOutlined, EyeOutlined } from '@ant-design/icons';
 import API from '../utils/axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -110,7 +110,7 @@ const AdminDashboard = () => {
                         <Statistic
                             title="Total System Spend"
                             value={stats.totalSpend}
-                            prefix={<DollarOutlined />}
+                            prefix={<span style={{ marginRight: 8 }}>₹</span>}
                             precision={2}
                             contentStyle={{ color: '#cf1322' }}
                         />

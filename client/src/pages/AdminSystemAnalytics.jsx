@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Typography, Row, Col, Spin, message, theme, Divider, Alert } from 'antd';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
-import { RobotOutlined, PieChartOutlined, DollarOutlined, RiseOutlined } from '@ant-design/icons';
+import { RobotOutlined, PieChartOutlined, RiseOutlined } from '@ant-design/icons';
 import API from '../utils/axios';
 
 const { Title, Text } = Typography;
@@ -102,7 +102,7 @@ const AdminSystemAnalytics = () => {
                                         ))}
                                     </Pie>
                                     <Tooltip
-                                        formatter={(value) => `$${value}`}
+                                        formatter={(value) => `₹${value}`}
                                         contentStyle={{ backgroundColor: token.colorBgElevated, borderRadius: 8, borderColor: token.colorBorderSecondary }}
                                         itemStyle={{ color: token.colorText }}
                                     />
