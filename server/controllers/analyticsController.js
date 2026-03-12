@@ -127,7 +127,7 @@ const getAnalyticsData = async (req, res) => {
             if (amount > avg * 1.5 && amount > 100) { // Spike > 50% and meaningful amount
                 const extra = amount - avg;
                 recommendations.push(
-                    `Spike detection: **${cat}** spending is **${Math.round((amount / avg - 1) * 100)}% higher** than your average. You spent **$${extra.toFixed(0)}** extra this month.`
+                    `Spike detection: **${cat}** spending is **${Math.round((amount / avg - 1) * 100)}% higher** than your average. You spent **₹${extra.toFixed(0)}** extra this month.`
                 );
             }
         }
@@ -147,20 +147,20 @@ const getAnalyticsData = async (req, res) => {
 
                 if (investments.some(i => catLower.includes(i))) {
                     recommendations.push(
-                        `Wealth Builder: You allocated **$${maxVal.toFixed(0)}** to **${maxCat}** this month. This is an excellent financial habit. Ensure you maintain liquid emergency funds.`
+                        `Wealth Builder: You allocated **₹${maxVal.toFixed(0)}** to **${maxCat}** this month. This is an excellent financial habit. Ensure you maintain liquid emergency funds.`
                     );
                 } else if (necessities.some(n => catLower.includes(n))) {
                     recommendations.push(
-                        `Major Commitment: **${maxCat}** is your highest expense ($${maxVal.toFixed(0)}). While fixed, looking for cheaper providers or refinancing could save **$${(maxVal * 0.05).toFixed(0)}** (5%).`
+                        `Major Commitment: **${maxCat}** is your highest expense (₹${maxVal.toFixed(0)}). While fixed, looking for cheaper providers or refinancing could save **₹${(maxVal * 0.05).toFixed(0)}** (5%).`
                     );
                 } else if (discretionary.some(d => catLower.includes(d))) {
                     recommendations.push(
-                        `Lifestyle Check: **${maxCat}** consumes **$${maxVal.toFixed(0)}**. This is variable spending. A stricter budget could cut this by 20%, saving you **$${(maxVal * 0.2).toFixed(0)}**.`
+                        `Lifestyle Check: **${maxCat}** consumes **₹${maxVal.toFixed(0)}**. This is variable spending. A stricter budget could cut this by 20%, saving you **₹${(maxVal * 0.2).toFixed(0)}**.`
                     );
                 } else {
                     // Fallback for general categories
                     recommendations.push(
-                        `Top Expense: **${maxCat}** is $${maxVal.toFixed(0)}. If this is discretionary, try targeting a 10% reduction to save **$${(maxVal * 0.1).toFixed(0)}**.`
+                        `Top Expense: **${maxCat}** is ₹${maxVal.toFixed(0)}. If this is discretionary, try targeting a 10% reduction to save **₹${(maxVal * 0.1).toFixed(0)}**.`
                     );
                 }
             }
@@ -181,7 +181,7 @@ const getAnalyticsData = async (req, res) => {
                 const requiredSavings = lastMonthData.income * 0.2;
                 const shortfall = requiredSavings - savings;
                 recommendations.push(
-                    `Savings Goal: You saved **${savingsRate.toFixed(1)}%** ($${savings.toFixed(0)}) last month. To hit the recommended **20%**, try to cut **$${shortfall.toFixed(0)}** from generic expenses.`
+                    `Savings Goal: You saved **${savingsRate.toFixed(1)}%** (₹${savings.toFixed(0)}) last month. To hit the recommended **20%**, try to cut **₹${shortfall.toFixed(0)}** from generic expenses.`
                 );
             } else if (savingsRate >= 50) {
                 recommendations.push(
@@ -198,11 +198,11 @@ const getAnalyticsData = async (req, res) => {
         const predictedSurplus = predictedIncome - predictedExpense;
         if (predictedSurplus < 0) {
             recommendations.push(
-                `Forecast Warning: Projected deficit of **$${Math.abs(predictedSurplus).toFixed(0)}** next month. Plan to cut discretionary spending immediately.`
+                `Forecast Warning: Projected deficit of **₹${Math.abs(predictedSurplus).toFixed(0)}** next month. Plan to cut discretionary spending immediately.`
             );
         } else if (predictedSurplus > 2000) {
             recommendations.push(
-                `Investment Opportunity: Projected surplus of **$${predictedSurplus.toFixed(0)}**. Investing this in an index fund could yield **~$${(predictedSurplus * 0.07).toFixed(0)}/year** @ 7%.`
+                `Investment Opportunity: Projected surplus of **₹${predictedSurplus.toFixed(0)}**. Investing this in an index fund could yield **~₹${(predictedSurplus * 0.07).toFixed(0)}/year** @ 7%.`
             );
         }
 

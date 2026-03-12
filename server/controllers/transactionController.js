@@ -46,7 +46,7 @@ const addTransaction = async (req, res) => {
             if (Number(amount) > threshold) {
                 await Notification.create({
                     user: req.user.id,
-                    message: `High Spending Alert: You spent $${amount} on ${category}. This exceeds your limit of $${threshold}.`,
+                    message: `High Spending Alert: You spent ₹${amount} on ${category}. This exceeds your limit of ₹${threshold}.`,
                     type: 'warning'
                 });
             }
@@ -120,7 +120,7 @@ const editTransaction = async (req, res) => {
             if (Number(amount) > threshold) {
                 await Notification.create({
                     user: req.user.id,
-                    message: `High Spending Alert (Updated): You spent $${amount} on ${category}. This exceeds your limit of $${threshold}.`,
+                    message: `High Spending Alert (Updated): You spent ₹${amount} on ${category}. This exceeds your limit of ₹${threshold}.`,
                     type: 'warning'
                 });
             }

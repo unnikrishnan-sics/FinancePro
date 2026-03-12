@@ -101,7 +101,7 @@ const Analytics = () => {
                                     <Title level={4} style={{ margin: '0 0 8px 0', color: token.colorSuccessText }}>AI Financial Insight</Title>
                                     <Text style={{ fontSize: 16, lineHeight: 1.6 }}>
                                         {prediction ?
-                                            `Based on your spending habits, we predict your expenses will be around $${prediction.expense.toFixed(0)} next month. ${isTrendingUp ? 'Spending is trending upwards—consider budgeting!' : 'Great job! Your spending trend is stable or decreasing.'}`
+                                            `Based on your spending habits, we predict your expenses will be around ₹${prediction.expense.toFixed(0)} next month. ${isTrendingUp ? 'Spending is trending upwards—consider budgeting!' : 'Great job! Your spending trend is stable or decreasing.'}`
                                             : 'Gathering more data to generate insights...'}
                                     </Text>
                                 </div>
@@ -153,7 +153,7 @@ const Analytics = () => {
                             title="Predicted Expense (Next Month)"
                             value={prediction?.expense}
                             precision={2}
-                            prefix="$"
+                            prefix="₹"
                             contentStyle={{ color: '#cf1322', fontSize: 32, fontWeight: 'bold' }}
                         />
                         <div style={{ marginTop: 16, marginBottom: 24 }}>
@@ -258,7 +258,7 @@ const Analytics = () => {
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
-                                    <Tooltip formatter={(value) => `$${value}`} contentStyle={{ backgroundColor: token.colorBgElevated, borderRadius: 8, borderColor: token.colorBorderSecondary, color: token.colorText }} itemStyle={{ color: token.colorText }} />
+                                    <Tooltip formatter={(value) => `₹${value}`} contentStyle={{ backgroundColor: token.colorBgElevated, borderRadius: 8, borderColor: token.colorBorderSecondary, color: token.colorText }} itemStyle={{ color: token.colorText }} />
                                     <Legend
                                         layout="vertical"
                                         verticalAlign="middle"
@@ -279,7 +279,7 @@ const Analytics = () => {
                                 <div key={index}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                                         <Text strong>{item.name}</Text>
-                                        <Text>${item.value.toFixed(2)}</Text>
+                                        <Text>₹{item.value.toFixed(2)}</Text>
                                     </div>
                                     <div style={{ width: '100%', background: '#f0f0f0', borderRadius: 4, height: 8, overflow: 'hidden' }}>
                                         <div

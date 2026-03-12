@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Typography, Table, DatePicker, Button, message, Space, Tag, Divider } from 'antd';
-import { DollarOutlined, ArrowUpOutlined, ArrowDownOutlined, DownloadOutlined, FileTextOutlined } from '@ant-design/icons';
+import { ArrowUpOutlined, ArrowDownOutlined, DownloadOutlined, FileTextOutlined } from '@ant-design/icons';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import API from '../utils/axios';
 import dayjs from 'dayjs';
@@ -82,7 +82,7 @@ const Reports = () => {
             key: 'amount',
             render: (amount, record) => (
                 <span style={{ color: record.type === 'income' ? '#3f8600' : '#cf1322', fontWeight: 'bold' }}>
-                    {record.type === 'expense' ? '-' : '+'} ${amount.toFixed(2)}
+                    {record.type === 'expense' ? '-' : '+'} ₹{amount.toFixed(2)}
                 </span>
             )
         },
@@ -143,7 +143,7 @@ const Reports = () => {
                                     value={reportData.summary.savings}
                                     precision={2}
                                     valueStyle={{ color: reportData.summary.savings >= 0 ? '#1677ff' : '#cf1322' }}
-                                    prefix={<DollarOutlined />}
+                                    prefix={<span style={{ marginRight: 8 }}>₹</span>}
                                 />
                             </Card>
                         </Col>
@@ -168,7 +168,7 @@ const Reports = () => {
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                 ))}
                                             </Pie>
-                                            <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
+                                            <Tooltip formatter={(value) => `₹${value.toFixed(2)}`} />
                                             <Legend verticalAlign="bottom" height={36} />
                                         </PieChart>
                                     </ResponsiveContainer>

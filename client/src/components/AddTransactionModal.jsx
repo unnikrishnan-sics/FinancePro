@@ -7,6 +7,10 @@ const { Option } = Select;
 
 const INCOME_CATEGORIES = [
     { label: 'Salary', value: 'salary' },
+    { label: 'Bonus', value: 'bonus' },
+    { label: 'Tip', value: 'tip' },
+    { label: 'Profit', value: 'profit' },
+    { label: 'Interest', value: 'interest' },
     { label: 'Investment', value: 'investment' },
     { label: 'Other', value: 'other' },
 ];
@@ -16,6 +20,10 @@ const EXPENSE_CATEGORIES = [
     { label: 'Transport', value: 'transport' },
     { label: 'Entertainment', value: 'entertainment' },
     { label: 'Utilities', value: 'utilities' },
+    { label: 'Shopping', value: 'shopping' },
+    { label: 'Health', value: 'health' },
+    { label: 'Education', value: 'education' },
+    { label: 'Bills', value: 'bills' },
     { label: 'Investment', value: 'investment' },
     { label: 'Other', value: 'other' },
 ];
@@ -124,7 +132,7 @@ const AddTransactionModal = ({ visible, onClose, onAdd, editData = null }) => {
                 </Form.Item>
 
                 <Form.Item name="amount" label="Amount" rules={[{ required: true, message: 'Enter amount' }]}>
-                    <InputNumber style={{ width: '100%' }} min={0} max={9999999999999} prefix="$" />
+                    <InputNumber style={{ width: '100%' }} min={0} max={9999999999999} prefix="₹" />
                 </Form.Item>
 
                 <Form.Item name="date" label="Date" rules={[{ required: true, message: 'Select date' }]}>

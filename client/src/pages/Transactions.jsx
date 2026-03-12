@@ -93,10 +93,18 @@ const Transactions = () => {
             key: 'category',
             filters: [
                 { text: 'Salary', value: 'salary' },
+                { text: 'Bonus', value: 'bonus' },
+                { text: 'Tip', value: 'tip' },
+                { text: 'Profit', value: 'profit' },
+                { text: 'Interest', value: 'interest' },
                 { text: 'Food', value: 'food' },
                 { text: 'Transport', value: 'transport' },
                 { text: 'Entertainment', value: 'entertainment' },
                 { text: 'Utilities', value: 'utilities' },
+                { text: 'Shopping', value: 'shopping' },
+                { text: 'Health', value: 'health' },
+                { text: 'Education', value: 'education' },
+                { text: 'Bills', value: 'bills' },
                 { text: 'Investment', value: 'investment' },
                 { text: 'Other', value: 'other' },
             ],
@@ -130,7 +138,7 @@ const Transactions = () => {
             sorter: (a, b) => a.amount - b.amount,
             render: (amount, record) => (
                 <span style={{ color: record.type === 'income' ? '#3f8600' : '#cf1322', fontWeight: 'bold' }}>
-                    {record.type === 'expense' ? '-' : '+'} ${amount.toFixed(2)}
+                    {record.type === 'expense' ? '-' : '+'} ₹{amount.toFixed(2)}
                 </span>
             )
         },

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Row, Col, Card, Statistic, Typography, Table, Tag, Button, message, theme, Tooltip, Space } from 'antd';
-import { ArrowUpOutlined, ArrowDownOutlined, DollarOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
+import { ArrowUpOutlined, ArrowDownOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, LineChart, Line, Legend } from 'recharts';
 import API from '../utils/axios';
 import AddTransactionModal from '../components/AddTransactionModal';
@@ -126,7 +126,7 @@ const Dashboard = () => {
             key: 'amount',
             render: (amount, record) => (
                 <span style={{ color: record.type === 'income' ? '#3f8600' : '#cf1322', fontWeight: 'bold' }}>
-                    {record.type === 'expense' ? '-' : '+'} ${amount.toFixed(2)}
+                    {record.type === 'expense' ? '-' : '+'} ₹{amount.toFixed(2)}
                 </span>
             )
         },
@@ -181,18 +181,18 @@ const Dashboard = () => {
             </div>
 
             <Row gutter={[16, 16]}>
-                <Col xs={24} sm={12} lg={6}>
+                <Col xs={24} sm={12} lg={8}>
                     <Card bordered={false}>
                         <Statistic
                             title="Total Balance"
                             value={totalBalance}
                             precision={2}
                             valueStyle={{ color: totalBalance >= 0 ? '#3f8600' : '#cf1322' }}
-                            prefix={<DollarOutlined />}
+                            prefix={<span style={{ marginRight: 8 }}>₹</span>}
                         />
                     </Card>
                 </Col>
-                <Col xs={24} sm={12} lg={6}>
+                <Col xs={24} sm={12} lg={8}>
                     <Card bordered={false}>
                         <Statistic
                             title="Income"
@@ -203,7 +203,7 @@ const Dashboard = () => {
                         />
                     </Card>
                 </Col>
-                <Col xs={24} sm={12} lg={6}>
+                <Col xs={24} sm={12} lg={8}>
                     <Card bordered={false}>
                         <Statistic
                             title="Expenses"
@@ -211,17 +211,6 @@ const Dashboard = () => {
                             precision={2}
                             valueStyle={{ color: '#cf1322' }}
                             prefix={<ArrowDownOutlined />}
-                        />
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card bordered={false}>
-                        <Statistic
-                            title="Savings"
-                            value={income - expense}
-                            precision={2}
-                            valueStyle={{ color: '#1677ff' }}
-                            prefix={<DollarOutlined />}
                         />
                     </Card>
                 </Col>
