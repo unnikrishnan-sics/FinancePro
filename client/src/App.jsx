@@ -18,6 +18,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminSystemAnalytics from './pages/AdminSystemAnalytics';
 import UserFeedback from './pages/UserFeedback';
 import AdminMessages from './pages/AdminMessages';
+import NotFound from './pages/NotFound';
 import DashboardLayout from './components/DashboardLayout';
 import PublicLayout from './layouts/PublicLayout';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
@@ -88,6 +89,9 @@ const AppContent = () => {
               <Route path="admin/messages" element={<AdminMessages />} />
               <Route path="admin/analytics/:userId" element={<Analytics />} />
             </Route>
+
+            {/* 404 Route */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </Router>

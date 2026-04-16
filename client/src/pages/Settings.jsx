@@ -144,6 +144,7 @@ const Settings = () => {
                         </Form.Item>
                     </Col>
                 </Row>
+                {/* 
                 <Divider />
 
                 <Title level={4}><BellOutlined /> Notification Settings</Title>
@@ -165,6 +166,7 @@ const Settings = () => {
                 </Form.Item>
 
                 <Divider />
+                */}
 
                 <Title level={4}><LockOutlined /> Security</Title>
                 <Form.Item name="password" label="New Password">

@@ -171,11 +171,13 @@ const DashboardLayout = () => {
                     />
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                        {/* 
                         <Popover content={notificationContent} trigger="click" placement="bottomRight" onOpenChange={(visible) => visible && fetchNotifications()}>
                             <Badge count={unreadCount} offset={[-5, 5]}>
                                 <Button type="text" shape="circle" icon={<BellOutlined style={{ fontSize: 20 }} />} />
                             </Badge>
                         </Popover>
+                        */}
 
                         <Dropdown menu={userMenu}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>

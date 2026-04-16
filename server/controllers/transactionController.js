@@ -37,7 +37,8 @@ const addTransaction = async (req, res) => {
             date: date || Date.now(),
         });
 
-        // --- Notification Logic ---
+        /* 
+        // --- Notification Logic --- (Disabled temporarily)
         // 1. Check for High Value Transaction
         if (type === 'expense') {
             const user = await User.findById(req.user.id);
@@ -51,6 +52,7 @@ const addTransaction = async (req, res) => {
                 });
             }
         }
+        */
 
         res.status(201).json(transaction);
     } catch (error) {
@@ -112,7 +114,8 @@ const editTransaction = async (req, res) => {
 
         await transaction.save();
 
-        // --- Notification Logic --- (same as add)
+        /* 
+        // --- Notification Logic --- (Disabled temporarily)
         if (type === 'expense' || transaction.type === 'expense') {
             const user = await User.findById(req.user.id);
             const threshold = user.highValueThreshold || 1000;
@@ -125,6 +128,7 @@ const editTransaction = async (req, res) => {
                 });
             }
         }
+        */
 
         res.status(200).json(transaction);
     } catch (error) {
