@@ -63,17 +63,15 @@ const DashboardLayout = () => {
     const handleUserMenuClick = ({ key }) => {
         if (key === 'logout') {
             handleLogout();
-        } else if (key === 'profile'
-            || key === 'settings'
-        ) {
-            navigate('/dashboard/settings');
+        } else {
+            navigate(key);
         }
     };
 
     const userMenu = {
         items: [
-            { key: 'profile', label: 'My Profile', icon: <UserOutlined /> },
-            { key: 'settings', label: 'Settings', icon: <SettingOutlined /> },
+            { key: '/dashboard/settings', label: 'My Profile', icon: <UserOutlined /> },
+            { key: '/dashboard/settings', label: 'Settings', icon: <SettingOutlined /> },
             { type: 'divider' },
             { key: 'logout', label: 'Logout', icon: <LogoutOutlined />, danger: true },
         ],
@@ -179,7 +177,7 @@ const DashboardLayout = () => {
                         </Popover>
                         */}
 
-                        <Dropdown menu={userMenu}>
+                        <Dropdown menu={userMenu} trigger={['click']}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
                                 <div style={{ textAlign: 'right', lineHeight: '1.2' }}>
                                     <Text strong style={{ display: 'block' }}>{userInfo.name || 'User'}</Text>
