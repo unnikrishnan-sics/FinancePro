@@ -115,34 +115,34 @@ const Reports = () => {
                 <>
                     <Row gutter={[16, 16]}>
                         <Col xs={24} sm={8}>
-                            <Card bordered={false}>
+                            <Card variant="borderless">
                                 <Statistic
                                     title="Total Income"
                                     value={reportData.summary.totalIncome}
                                     precision={2}
-                                    valueStyle={{ color: '#3f8600' }}
+                                    styles={{ content: { color: '#3f8600' } }}
                                     prefix={<ArrowUpOutlined />}
                                 />
                             </Card>
                         </Col>
                         <Col xs={24} sm={8}>
-                            <Card bordered={false}>
+                            <Card variant="borderless">
                                 <Statistic
                                     title="Total Expenses"
                                     value={reportData.summary.totalExpense}
                                     precision={2}
-                                    valueStyle={{ color: '#cf1322' }}
+                                    styles={{ content: { color: '#cf1322' } }}
                                     prefix={<ArrowDownOutlined />}
                                 />
                             </Card>
                         </Col>
                         <Col xs={24} sm={8}>
-                            <Card bordered={false}>
+                            <Card variant="borderless">
                                 <Statistic
                                     title="Net Savings"
                                     value={reportData.summary.savings}
                                     precision={2}
-                                    valueStyle={{ color: reportData.summary.savings >= 0 ? '#1677ff' : '#cf1322' }}
+                                    styles={{ content: { color: reportData.summary.savings >= 0 ? '#1677ff' : '#cf1322' } }}
                                     prefix={<span style={{ marginRight: 8 }}>₹</span>}
                                 />
                             </Card>
@@ -151,8 +151,8 @@ const Reports = () => {
 
                     <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
                         <Col xs={24} lg={12}>
-                            <Card title="Expense Breakdown" bordered={false} style={{ height: '100%' }}>
-                                <div style={{ height: 300 }}>
+                            <Card title="Expense Breakdown" variant="borderless" style={{ height: '100%' }}>
+                                <div style={{ height: 300, minWidth: 0 }}>
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Pie
@@ -176,8 +176,8 @@ const Reports = () => {
                             </Card>
                         </Col>
                         <Col xs={24} lg={12}>
-                            <Card title="Daily Spending Trend" bordered={false} style={{ height: '100%' }}>
-                                <div style={{ height: 300 }}>
+                            <Card title="Daily Spending Trend" variant="borderless" style={{ height: '100%' }}>
+                                <div style={{ height: 300, minWidth: 0 }}>
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={reportData.dailyTrend}>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -194,7 +194,7 @@ const Reports = () => {
                         </Col>
                     </Row>
 
-                    <Card title="Monthly Transactions" bordered={false} style={{ marginTop: 24 }}>
+                    <Card title="Monthly Transactions" variant="borderless" style={{ marginTop: 24 }}>
                         <Table
                             dataSource={reportData.transactions}
                             columns={columns}

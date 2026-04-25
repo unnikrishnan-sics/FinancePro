@@ -55,6 +55,7 @@ app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/notifications', require('./routes/notificationRoute'));
 app.use('/api/v1/admin', require('./routes/adminRoutes'));
 app.use('/api/v1/support', require('./routes/messageRoutes'));
+app.use('/api/v1/goals', require('./routes/goalRoutes'));
 
 // Seed Admin removed from here as it is now in startServer();
 

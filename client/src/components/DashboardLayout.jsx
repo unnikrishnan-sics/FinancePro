@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom';
-import { Layout, Menu, Button, Avatar, Dropdown, theme, Typography } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, theme, Typography, List } from 'antd';
 import { useTheme } from '../context/ThemeContext';
 import {
     AppstoreOutlined,
@@ -15,10 +15,11 @@ import {
     NotificationOutlined,
     CheckCircleOutlined,
     MessageOutlined,
-    FileTextOutlined
+    FileTextOutlined,
+    AimOutlined
 } from '@ant-design/icons';
-import { Badge, Popover, List } from 'antd';
 import API from '../utils/axios';
+import ChatBot from './ChatBot';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -50,6 +51,7 @@ const DashboardLayout = () => {
         { key: '/dashboard/transactions', icon: <WalletOutlined />, label: 'Transactions' },
         { key: '/dashboard/analytics', icon: <PieChartOutlined />, label: 'Analytics' },
         { key: '/dashboard/reports', icon: <FileTextOutlined />, label: 'Reports' },
+        { key: '/dashboard/goals', icon: <AimOutlined />, label: 'Goals' },
         { key: '/dashboard/feedback', icon: <MessageOutlined />, label: 'Feedback' },
         { key: '/dashboard/settings', icon: <SettingOutlined />, label: 'Settings' },
     ];
@@ -200,6 +202,7 @@ const DashboardLayout = () => {
                     <Outlet />
                 </Content>
             </Layout>
+            <ChatBot />
         </Layout>
     );
 };

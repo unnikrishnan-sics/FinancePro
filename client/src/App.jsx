@@ -18,6 +18,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminSystemAnalytics from './pages/AdminSystemAnalytics';
 import UserFeedback from './pages/UserFeedback';
 import AdminMessages from './pages/AdminMessages';
+import Goals from './pages/Goals';
 import NotFound from './pages/NotFound';
 import DashboardLayout from './components/DashboardLayout';
 import PublicLayout from './layouts/PublicLayout';
@@ -84,6 +85,7 @@ const AppContent = () => {
               <Route path="reports" element={<Reports />} />
               <Route path="settings" element={<Settings />} />
               <Route path="feedback" element={<UserFeedback />} />
+              <Route path="goals" element={<Goals />} />
               <Route path="admin" element={<AdminDashboard />} />
               <Route path="admin/system-analytics" element={<AdminSystemAnalytics />} />
               <Route path="admin/messages" element={<AdminMessages />} />
