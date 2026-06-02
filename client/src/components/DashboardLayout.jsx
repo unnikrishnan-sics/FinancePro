@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom';
-import { Layout, Menu, Button, Avatar, Dropdown, theme, Typography, List } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, theme, Typography, List, Popover, Badge } from 'antd';
 import { useTheme } from '../context/ThemeContext';
 import {
     AppstoreOutlined,
@@ -171,13 +171,11 @@ const DashboardLayout = () => {
                     />
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                        {/* 
                         <Popover content={notificationContent} trigger="click" placement="bottomRight" onOpenChange={(visible) => visible && fetchNotifications()}>
                             <Badge count={unreadCount} offset={[-5, 5]}>
                                 <Button type="text" shape="circle" icon={<BellOutlined style={{ fontSize: 20 }} />} />
                             </Badge>
                         </Popover>
-                        */}
 
                         <Dropdown menu={userMenu} trigger={['click']}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
