@@ -144,7 +144,6 @@ const Settings = () => {
                         </Form.Item>
                     </Col>
                 </Row>
-                {/* 
                 <Divider />
 
                 <Title level={4}><BellOutlined /> Notification Settings</Title>
@@ -154,11 +153,11 @@ const Settings = () => {
 
                 <Form.Item
                     name="highValueThreshold"
-                    label="High Spending Alert Limit ($)"
+                    label="High Spending Alert Limit (₹)"
                     help="You will be notified if a single expense exceeds this amount."
                 >
                     <InputNumber
-                        prefix="$"
+                        prefix="₹"
                         style={{ width: '100%' }}
                         min={0}
                         size="large"
@@ -166,7 +165,6 @@ const Settings = () => {
                 </Form.Item>
 
                 <Divider />
-                */}
 
                 <Title level={4}><LockOutlined /> Security</Title>
                 <Form.Item name="password" label="New Password">

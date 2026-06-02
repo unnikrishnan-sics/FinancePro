@@ -19,15 +19,15 @@ const createGoal = async (req, res) => {
     try {
         const { title, targetAmount, category, deadline } = req.body;
 
-        if (!title || !targetAmount || !category) {
-            return res.status(400).json({ message: 'Please provide title, target amount and category' });
+        if (!title || !targetAmount) {
+            return res.status(400).json({ message: 'Please provide title and target amount' });
         }
 
         const goal = await Goal.create({
             user: req.user.id,
             title,
             targetAmount,
-            category,
+            category: category || 'Savings',
             deadline,
         });
 

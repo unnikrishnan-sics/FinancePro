@@ -24,10 +24,14 @@ const AddGoalModal = ({ visible, onClose, onAdd, editData }) => {
     const handleSubmit = async () => {
         try {
             const values = await form.validateFields();
+            const goalData = {
+                category: 'Savings', // Default category since not present in Form items
+                ...values
+            };
             if (editData) {
                 // Edit logic if needed
             } else {
-                await API.post('/api/v1/goals', values);
+                await API.post('/api/v1/goals', goalData);
                 message.success('Goal created successfully');
             }
             form.resetFields();
