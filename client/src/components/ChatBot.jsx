@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button, Card, Input, Typography, Avatar, Space, Spin, theme } from 'antd';
 import { MessageFilled, CloseOutlined, SendOutlined, RobotOutlined, UserOutlined, DeleteOutlined } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import API from '../utils/axios';
 import { useTheme } from '../context/ThemeContext';
 
 const { Text, Title } = Typography;
@@ -17,17 +17,6 @@ const ChatBot = () => {
     const scrollRef = useRef(null);
     const { token } = theme.useToken();
     const { darkMode } = useTheme();
-
-    // Initialize Gemini
-    const apiKey = import.meta.env.VITE_GEMINI_KEY;
-    if (!apiKey) {
-        console.warn("Gemini API Key (VITE_GEMINI_KEY) is missing in .env");
-    }
-    const genAI = new GoogleGenerativeAI(apiKey || "");
-    const model = genAI.getGenerativeModel({ 
-        model: "gemini-flash-latest",
-        systemInstruction: "You are FinancePro AI, a professional and friendly financial assistant for the FinancePro app. Help users understand their finances, explain financial concepts (like budgeting, investing, and savings), and guide them through app features. Be concise and encouraging. Avoid providing specific investment advice on stocks; instead, focus on general principles.",
-    });
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -44,22 +33,19 @@ const ChatBot = () => {
         setLoading(true);
 
         try {
-            // Gemini history MUST start with a user message. 
-            // We filter out any initial model messages from the history.
             const history = messages
                 .filter((m, idx) => !(idx === 0 && m.role === 'model'))
                 .map(m => ({
                     role: m.role,
-                    parts: [{ text: m.text }],
+                    text: m.text
                 }));
 
-            const chat = model.startChat({ history });
+            const { data } = await API.post('/api/v1/support/chat', {
+                message: userMessage,
+                history
+            });
 
-            const result = await chat.sendMessage(userMessage);
-            const response = await result.response;
-            const text = response.text();
-
-            setMessages(prev => [...prev, { role: 'model', text: text }]);
+            setMessages(prev => [...prev, { role: 'model', text: data.text }]);
         } catch (error) {
             console.error("Gemini Error:", error);
             setMessages(prev => [...prev, { role: 'model', text: "Sorry, I'm having trouble connecting right now. Please try again later." }]);

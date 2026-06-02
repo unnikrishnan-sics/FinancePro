@@ -50,15 +50,24 @@ const Analytics = () => {
         return <div style={{ textAlign: 'center', padding: 50 }}><Spin size="large" /></div>;
     }
 
-    const { historical, prediction, summary } = data;
+    const { historical, prediction, predictions, summary } = data;
 
     // Combine historical and prediction for chart
-    const chartData = [...historical];
-    if (prediction) {
+    const chartData = [...(historical || [])];
+    if (predictions && predictions.length > 0) {
+        predictions.forEach(p => {
+            chartData.push({
+                month: p.month + ' (FC)',
+                income: Math.round(p.income),
+                expense: Math.round(p.expense),
+                isPrediction: true
+            });
+        });
+    } else if (prediction) {
         chartData.push({
-            month: prediction.month + ' (Pred)',
-            income: prediction.income,
-            expense: prediction.expense,
+            month: prediction.month + ' (FC)',
+            income: Math.round(prediction.income),
+            expense: Math.round(prediction.expense),
             isPrediction: true
         });
     }
@@ -193,7 +202,7 @@ const Analytics = () => {
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                         <XAxis dataKey="month" />
                                         <YAxis />
-                                        <Tooltip contentStyle={{ backgroundColor: token.colorBgElevated, borderRadius: 8, borderColor: token.colorBorderSecondary, color: token.colorText }} itemStyle={{ color: token.colorText }} />
+                                        <Tooltip formatter={(value, name, props) => [ `₹${value.toLocaleString()}`, `${name}${props.payload.isPrediction ? ' (Forecasted)' : ''}` ]} contentStyle={{ backgroundColor: token.colorBgElevated, borderRadius: 8, borderColor: token.colorBorderSecondary, color: token.colorText }} itemStyle={{ color: token.colorText }} />
                                         <Legend />
                                         <Bar dataKey="income" fill={token.colorPrimary} radius={[4, 4, 0, 0]} />
                                         <Bar dataKey="expense" fill="#ff4d4f" radius={[4, 4, 0, 0]} />
@@ -203,7 +212,7 @@ const Analytics = () => {
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                         <XAxis dataKey="month" />
                                         <YAxis />
-                                        <Tooltip contentStyle={{ backgroundColor: token.colorBgElevated, borderRadius: 8, borderColor: token.colorBorderSecondary, color: token.colorText }} itemStyle={{ color: token.colorText }} />
+                                        <Tooltip formatter={(value, name, props) => [ `₹${value.toLocaleString()}`, `${name}${props.payload.isPrediction ? ' (Forecasted)' : ''}` ]} contentStyle={{ backgroundColor: token.colorBgElevated, borderRadius: 8, borderColor: token.colorBorderSecondary, color: token.colorText }} itemStyle={{ color: token.colorText }} />
                                         <Legend />
                                         <Line type="monotone" dataKey="income" stroke={token.colorPrimary} strokeWidth={3} dot={{ r: 4 }} />
                                         <Line type="monotone" dataKey="expense" stroke="#ff4d4f" strokeWidth={3} dot={{ r: 4 }} />
@@ -223,7 +232,7 @@ const Analytics = () => {
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                         <XAxis dataKey="month" />
                                         <YAxis />
-                                        <Tooltip />
+                                        <Tooltip formatter={(value, name, props) => [ `₹${value.toLocaleString()}`, `${name}${props.payload.isPrediction ? ' (Forecasted)' : ''}` ]} contentStyle={{ backgroundColor: token.colorBgElevated, borderRadius: 8, borderColor: token.colorBorderSecondary, color: token.colorText }} itemStyle={{ color: token.colorText }} />
                                         <Legend />
                                         <Area type="monotone" dataKey="income" stroke={token.colorPrimary} fillOpacity={1} fill="url(#colorIncome)" />
                                         <Area type="monotone" dataKey="expense" stroke="#ff4d4f" fillOpacity={1} fill="url(#colorExpense)" />

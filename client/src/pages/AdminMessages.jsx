@@ -1,8 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
-import { Table, Tag, Card, Tabs, Button, Typography, message, Tooltip, Space, Modal, Descriptions } from 'antd';
+import { Table, Tag, Card, Tabs, Button, Typography, message, Tooltip, Space, Modal, Descriptions, Input } from 'antd';
 import { CheckOutlined, MailOutlined, MessageOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
 import API from '../utils/axios';
+import { useTheme } from '../context/ThemeContext';
 
 const { Title, Text } = Typography;
 
@@ -11,6 +12,11 @@ const AdminMessages = () => {
     const [loading, setLoading] = useState(false);
     const [selectedMessage, setSelectedMessage] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [replyText, setReplyText] = useState('');
+    const [replyLoading, setReplyLoading] = useState(false);
+    const [isEditingReply, setIsEditingReply] = useState(false);
+    
+    const { darkMode } = useTheme();
     const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
     const fetchMessages = async () => {
@@ -43,10 +49,41 @@ const AdminMessages = () => {
     };
 
     const openMessageDetailsModal = (record) => {
-        console.log('Opening message details modal for record:', record);
-        console.trace('Modal trigger trace:');
         setSelectedMessage(record);
+        setReplyText(record.adminResponse || '');
+        setIsEditingReply(false);
         setIsModalOpen(true);
+    };
+
+    const handleSendReply = async () => {
+        setReplyLoading(true);
+        try {
+            const { data } = await API.put(`/api/v1/support/${selectedMessage._id}/respond`, {
+                responseText: replyText.trim()
+            });
+            message.success('Response sent successfully');
+            
+            // Update selectedMessage state with the new response
+            setSelectedMessage(prev => ({
+                ...prev,
+                adminResponse: data.adminResponse,
+                respondedAt: data.respondedAt,
+                read: true
+            }));
+
+            // Update main messages list state optimistically
+            setMessages(prev => prev.map(msg => 
+                msg._id === selectedMessage._id 
+                    ? { ...msg, adminResponse: data.adminResponse, respondedAt: data.respondedAt, read: true } 
+                    : msg
+            ));
+            
+            setIsEditingReply(false);
+        } catch (error) {
+            message.error(error.response?.data?.message || 'Failed to send response');
+        } finally {
+            setReplyLoading(false);
+        }
     };
 
     const columns = [
@@ -117,6 +154,21 @@ const AdminMessages = () => {
             sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
         },
         {
+            title: 'Reply Status',
+            key: 'replyStatus',
+            width: 130,
+            render: (_, record) => {
+                if (record.type === 'FEEDBACK') {
+                    return record.respondedAt ? (
+                        <Tag color="success">Replied</Tag>
+                    ) : (
+                        <Tag color="warning">Pending</Tag>
+                    );
+                }
+                return <Text type="secondary">-</Text>;
+            }
+        },
+        {
             title: 'Action',
             key: 'action',
             width: 100,
@@ -172,37 +224,106 @@ const AdminMessages = () => {
                 width={600}
             >
                 {selectedMessage && (
-                    <Descriptions column={1} bordered>
-                        <Descriptions.Item label="From">{selectedMessage.name}</Descriptions.Item>
-                        <Descriptions.Item label="Email">
-                            <a href={`mailto:${selectedMessage.email}`}>{selectedMessage.email}</a>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Type">
-                            <Tag color={selectedMessage.type === 'CONTACT' ? 'blue' : 'purple'}>
-                                {selectedMessage.type}
-                            </Tag>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Date">
-                            {new Date(selectedMessage.createdAt).toLocaleString()}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Status">
-                            <Tag color={selectedMessage.read ? 'green' : 'red'}>
-                                {selectedMessage.read ? 'Read' : 'Unread'}
-                            </Tag>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Message">
-                            <div style={{
-                                whiteSpace: 'pre-wrap',
-                                maxHeight: 300,
-                                overflowY: 'auto',
-                                background: '#f8fafc',
-                                padding: 12,
-                                borderRadius: 6
-                            }}>
-                                <Text>{selectedMessage.message}</Text>
-                            </div>
-                        </Descriptions.Item>
-                    </Descriptions>
+                    <div style={{ marginTop: 10 }}>
+                        <Descriptions column={1} bordered size="small">
+                            <Descriptions.Item label="From">{selectedMessage.name}</Descriptions.Item>
+                            <Descriptions.Item label="Email">
+                                <a href={`mailto:${selectedMessage.email}`}>{selectedMessage.email}</a>
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Type">
+                                <Tag color={selectedMessage.type === 'CONTACT' ? 'blue' : 'purple'}>
+                                    {selectedMessage.type}
+                                </Tag>
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Date">
+                                {new Date(selectedMessage.createdAt).toLocaleString()}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Status">
+                                <Tag color={selectedMessage.read ? 'green' : 'red'}>
+                                    {selectedMessage.read ? 'Read' : 'Unread'}
+                                </Tag>
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Message">
+                                <div style={{
+                                    whiteSpace: 'pre-wrap',
+                                    maxHeight: 150,
+                                    overflowY: 'auto',
+                                    background: darkMode ? '#1c1c1e' : '#f8fafc',
+                                    padding: 12,
+                                    borderRadius: 6
+                                }}>
+                                    <Text>{selectedMessage.message}</Text>
+                                </div>
+                            </Descriptions.Item>
+                        </Descriptions>
+
+                        <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${darkMode ? '#2c2c2e' : '#f0f0f0'}` }}>
+                            <Title level={5} style={{ marginBottom: 12 }}>Response & Action</Title>
+                            {selectedMessage.respondedAt && !isEditingReply ? (
+                                <div style={{ 
+                                    background: darkMode ? 'rgba(82, 196, 26, 0.08)' : '#f6ffed', 
+                                    border: `1px solid ${darkMode ? 'rgba(82, 196, 26, 0.2)' : '#b7eb8f'}`,
+                                    padding: 16, 
+                                    borderRadius: 12,
+                                    position: 'relative'
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                        <Text type="secondary" style={{ fontSize: 12 }}>
+                                            Responded on: {new Date(selectedMessage.respondedAt).toLocaleString()}
+                                        </Text>
+                                        <Button 
+                                            type="link" 
+                                            size="small" 
+                                            onClick={() => setIsEditingReply(true)}
+                                            style={{ padding: 0 }}
+                                        >
+                                            Edit Response
+                                        </Button>
+                                    </div>
+                                    <Text style={{ 
+                                        whiteSpace: 'pre-wrap', 
+                                        fontStyle: selectedMessage.adminResponse ? 'normal' : 'italic',
+                                        color: selectedMessage.adminResponse ? 'inherit' : (darkMode ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)')
+                                    }}>
+                                        {selectedMessage.adminResponse || "Responded without a message."}
+                                    </Text>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                    <Input.TextArea
+                                        rows={4}
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        placeholder="Type your response to the user here..."
+                                        maxLength={1000}
+                                        showCount
+                                        disabled={replyLoading}
+                                    />
+                                    <Space style={{ alignSelf: 'flex-end' }}>
+                                        {isEditingReply && (
+                                            <Button 
+                                                onClick={() => {
+                                                    setIsEditingReply(false);
+                                                    setReplyText(selectedMessage.adminResponse || '');
+                                                }}
+                                                disabled={replyLoading}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        )}
+                                        <Button
+                                            type="primary"
+                                            onClick={handleSendReply}
+                                            loading={replyLoading}
+                                            icon={<CheckOutlined />}
+                                        >
+                                            {isEditingReply ? 'Update Response' : 'Send Response'}
+                                        </Button>
+                                    </Space>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 )}
             </Modal>
         </div>

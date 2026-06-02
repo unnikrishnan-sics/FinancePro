@@ -1,18 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Progress, Typography, Button, message, Spin, Empty, Tag, Space, Tooltip, InputNumber, Modal } from 'antd';
-import { PlusOutlined, AimOutlined, CalendarOutlined, DeleteOutlined, RocketOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { Row, Col, Card, Progress, Typography, Button, message, Spin, Empty, Tag, Space, Tooltip, InputNumber, Modal, Radio, Select, theme } from 'antd';
+import { PlusOutlined, AimOutlined, CalendarOutlined, DeleteOutlined, RocketOutlined, PlusCircleOutlined, LineChartOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import API from '../utils/axios';
 import AddGoalModal from '../components/AddGoalModal';
+import { useTheme } from '../context/ThemeContext';
 
 const { Title, Text } = Typography;
 
 const Goals = () => {
+    const { token } = theme.useToken();
+    const { darkMode } = useTheme();
     const [goals, setGoals] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isAddModalVisible, setIsAddModalVisible] = useState(false);
     const [contributionModalVisible, setContributionModalVisible] = useState(false);
     const [selectedGoal, setSelectedGoal] = useState(null);
     const [contributionAmount, setContributionAmount] = useState(100);
+
+    // Simulation States
+    const [simModalVisible, setSimModalVisible] = useState(false);
+    const [simRiskProfile, setSimRiskProfile] = useState('medium');
+    const [simMonthlySavings, setSimMonthlySavings] = useState(0);
+    const [simSuccessRate, setSimSuccessRate] = useState(0);
+    const [simPathData, setSimPathData] = useState([]);
+    const [simLoading, setSimLoading] = useState(false);
 
     useEffect(() => {
         fetchGoals();
@@ -28,6 +40,97 @@ const Goals = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleOpenSimulation = (goal) => {
+        setSelectedGoal(goal);
+        
+        // Calculate recommended savings
+        const deadlineDate = goal.deadline ? new Date(goal.deadline) : new Date();
+        const now = new Date();
+        const months = Math.max(1, Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24 * 30.41)));
+        const remaining = goal.targetAmount - goal.currentAmount;
+        const recommendedMonthly = Math.max(0, Math.ceil(remaining / months));
+        
+        setSimMonthlySavings(recommendedMonthly);
+        setSimRiskProfile('medium');
+        setSimModalVisible(true);
+        
+        // Run initial simulation
+        setTimeout(() => {
+            runMonteCarlo(goal, recommendedMonthly, 'medium');
+        }, 50);
+    };
+
+    const runMonteCarlo = (goal, monthlySavings, riskProfile) => {
+        setSimLoading(true);
+
+        const target = goal.targetAmount;
+        const current = goal.currentAmount;
+        
+        const deadlineDate = goal.deadline ? new Date(goal.deadline) : new Date();
+        const now = new Date();
+        let months = Math.max(1, Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24 * 30.41)));
+        if (months > 120) months = 120; // Cap at 10 years to prevent performance lag
+        
+        let mu = 0;
+        let sigma = 0;
+        
+        if (riskProfile === 'low') {
+            mu = 0.05 / 12; // 5% annual
+            sigma = 0.04 / Math.sqrt(12); // 4% annual volatility
+        } else if (riskProfile === 'high') {
+            mu = 0.12 / 12; // 12% annual
+            sigma = 0.22 / Math.sqrt(12); // 22% annual volatility
+        } else { // medium
+            mu = 0.08 / 12; // 8% annual
+            sigma = 0.12 / Math.sqrt(12); // 12% annual volatility
+        }
+
+        const NUM_TRIALS = 1000;
+        const allPaths = [];
+        const pathTracers = [];
+
+        for (let t = 0; t < NUM_TRIALS; t++) {
+            let val = current;
+            const singlePath = [val];
+            for (let m = 1; m <= months; m++) {
+                // Box-Muller standard normal
+                const u1 = Math.random() || 0.0001;
+                const u2 = Math.random();
+                const Z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                
+                const r = mu + sigma * Z;
+                val = (val + monthlySavings) * (1 + r);
+                singlePath.push(Math.max(0, val));
+            }
+            allPaths.push(val);
+            pathTracers.push(singlePath);
+        }
+
+        const successCount = allPaths.filter(v => v >= target).length;
+        const rate = Math.round((successCount / NUM_TRIALS) * 100);
+        setSimSuccessRate(rate);
+
+        const formattedChartData = [];
+        for (let m = 0; m <= months; m++) {
+            const valuesAtMonth = pathTracers.map(path => path[m]).sort((a, b) => a - b);
+            
+            const worstIdx = Math.floor(NUM_TRIALS * 0.1);
+            const medianIdx = Math.floor(NUM_TRIALS * 0.5);
+            const bestIdx = Math.floor(NUM_TRIALS * 0.9);
+
+            formattedChartData.push({
+                month: `M${m}`,
+                'Worst Case': Math.round(valuesAtMonth[worstIdx]),
+                'Median Case': Math.round(valuesAtMonth[medianIdx]),
+                'Best Case': Math.round(valuesAtMonth[bestIdx]),
+                'Target': target
+            });
+        }
+        
+        setSimPathData(formattedChartData);
+        setSimLoading(false);
     };
 
     const handleDelete = async (id) => {
@@ -104,6 +207,9 @@ const Goals = () => {
                                     actions={[
                                         <Tooltip title="Add Money">
                                             <PlusCircleOutlined key="add" onClick={() => { setSelectedGoal(goal); setContributionModalVisible(true); }} style={{ fontSize: 18, color: '#1677ff' }} />
+                                        </Tooltip>,
+                                        <Tooltip title="Stochastic Simulation (Predict)">
+                                            <LineChartOutlined key="simulate" onClick={() => handleOpenSimulation(goal)} style={{ fontSize: 18, color: '#faad14' }} />
                                         </Tooltip>,
                                         <Tooltip title="Delete Goal">
                                             <DeleteOutlined key="delete" onClick={() => handleDelete(goal._id)} style={{ fontSize: 18, color: '#ff4d4f' }} />
@@ -195,6 +301,182 @@ const Goals = () => {
                     })}
                 </Row>
             )}
+
+            <Modal
+                title={`Stochastic Goal Market Simulator: ${selectedGoal?.title}`}
+                open={simModalVisible}
+                onCancel={() => setSimModalVisible(false)}
+                footer={[
+                    <Button key="close" onClick={() => setSimModalVisible(false)}>
+                        Close
+                    </Button>
+                ]}
+                width={850}
+                styles={{ body: { padding: '20px 0' } }}
+            >
+                {selectedGoal && (
+                    <Row gutter={[24, 24]} style={{ padding: '0 10px' }}>
+                        {/* Simulation controls (Left Column) */}
+                        <Col xs={24} md={10}>
+                            <Card title="Simulation Parameters" size="small" bordered={false} style={{ background: '#f8fafc', borderRadius: 12 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                    <div>
+                                        <Text type="secondary" style={{ display: 'block', fontSize: 12, textTransform: 'uppercase', marginBottom: 4 }}>Goal Target</Text>
+                                        <Text strong style={{ fontSize: 16 }}>₹{selectedGoal.targetAmount.toLocaleString()}</Text>
+                                    </div>
+                                    <div>
+                                        <Text type="secondary" style={{ display: 'block', fontSize: 12, textTransform: 'uppercase', marginBottom: 4 }}>Current Balance</Text>
+                                        <Text strong style={{ fontSize: 16 }}>₹{selectedGoal.currentAmount.toLocaleString()}</Text>
+                                    </div>
+                                    
+                                    <div>
+                                        <Text type="secondary" style={{ display: 'block', fontSize: 12, textTransform: 'uppercase', marginBottom: 4 }}>Monthly Contribution (₹)</Text>
+                                        <InputNumber
+                                            style={{ width: '100%' }}
+                                            min={0}
+                                            value={simMonthlySavings}
+                                            onChange={(val) => {
+                                                setSimMonthlySavings(val || 0);
+                                                runMonteCarlo(selectedGoal, val || 0, simRiskProfile);
+                                            }}
+                                            formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                            parser={value => value.replace(/\₹\s?|(,*)/g, '')}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <Text type="secondary" style={{ display: 'block', fontSize: 12, textTransform: 'uppercase', marginBottom: 6 }}>Market Asset Risk Profile</Text>
+                                        <Select
+                                            style={{ width: '100%' }}
+                                            value={simRiskProfile}
+                                            onChange={(val) => {
+                                                setSimRiskProfile(val);
+                                                runMonteCarlo(selectedGoal, simMonthlySavings, val);
+                                            }}
+                                            options={[
+                                                { value: 'low', label: 'Low Risk (Bonds/FDs - ~5% CAGR)' },
+                                                { value: 'medium', label: 'Medium Risk (Balanced - ~8% CAGR)' },
+                                                { value: 'high', label: 'High Risk (Equities - ~12% CAGR)' }
+                                            ]}
+                                        />
+                                    </div>
+                                    
+                                    <Button 
+                                        type="primary" 
+                                        onClick={() => runMonteCarlo(selectedGoal, simMonthlySavings, simRiskProfile)} 
+                                        loading={simLoading}
+                                        block
+                                    >
+                                        Recalculate Simulation
+                                    </Button>
+                                </div>
+                            </Card>
+                        </Col>
+                        
+                        {/* Simulation results (Right Column) */}
+                        <Col xs={24} md={14}>
+                            {simLoading ? (
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 350 }}>
+                                    <Spin size="large" tip="Running 1,000 Stochastic Trials..." />
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                                        <div style={{ textAlign: 'center' }}>
+                                            <Progress
+                                                type="circle"
+                                                percent={simSuccessRate}
+                                                strokeColor={simSuccessRate >= 80 ? '#52c41a' : simSuccessRate >= 50 ? '#1890ff' : '#ff4d4f'}
+                                                width={110}
+                                                strokeWidth={8}
+                                            />
+                                            <Text strong style={{ display: 'block', marginTop: 8 }}>Success Probability</Text>
+                                        </div>
+                                        <div style={{ maxWidth: 220 }}>
+                                            <Title level={5} style={{ margin: 0 }}>Simulation Summary</Title>
+                                            <Text type="secondary" style={{ fontSize: 13, display: 'block', marginTop: 8, lineHeight: 1.5 }}>
+                                                {simSuccessRate >= 80 ? 
+                                                    `Excellent! There is a very high probability (${simSuccessRate}%) that your regular monthly savings will comfortably achieve your target.` :
+                                                    simSuccessRate >= 50 ? 
+                                                    `Moderate likelihood (${simSuccessRate}%). Consider increasing your monthly contributions slightly to improve your target certainty.` :
+                                                    `High shortfall risk (${simSuccessRate}%). We strongly advise boosting monthly savings or extending your timeline to secure success.`
+                                                }
+                                            </Text>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <Text strong style={{ fontSize: 14, display: 'block', marginBottom: 8 }}>Stochastic Pathway Forecast (Monthly)</Text>
+                                        <div style={{ width: '100%', height: 200 }}>
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <LineChart data={simPathData}>
+                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                                    <XAxis dataKey="month" style={{ fontSize: 11 }} />
+                                                    <YAxis style={{ fontSize: 11 }} />
+                                                    <RechartsTooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                                                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                                                    <Line type="monotone" dataKey="Best Case" stroke="#52c41a" strokeDasharray="3 3" dot={false} />
+                                                    <Line type="monotone" dataKey="Median Case" stroke="#1890ff" strokeWidth={2} dot={false} />
+                                                    <Line type="monotone" dataKey="Worst Case" stroke="#ff4d4f" strokeDasharray="3 3" dot={false} />
+                                                    <Line type="monotone" dataKey="Target" stroke="#8c8c8c" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </Col>
+
+                        {/* Explanation section for CAGR & Stochastic Simulator */}
+                        <Col xs={24}>
+                            <Card 
+                                size="small" 
+                                bordered={false} 
+                                style={{ 
+                                    background: darkMode ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' : 'linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%)', 
+                                    borderRadius: 12,
+                                    border: darkMode ? '1px solid #334155' : '1px solid #bae6fd',
+                                    marginTop: 16
+                                }}
+                            >
+                                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: 8 }}>
+                                    <InfoCircleOutlined style={{ color: darkMode ? '#38bdf8' : '#0284c7', fontSize: 20, marginTop: 2 }} />
+                                    <div>
+                                        <Title level={5} style={{ margin: 0, color: darkMode ? '#38bdf8' : '#0369a1' }}>
+                                            Understanding the Analytics: CAGR & Stochastic Simulations
+                                        </Title>
+                                        <Row gutter={[16, 16]} style={{ marginTop: 12 }}>
+                                            <Col xs={24} sm={12}>
+                                                <Text strong style={{ color: darkMode ? '#38bdf8' : '#0369a1', display: 'block', marginBottom: 4 }}>
+                                                    📈 What is CAGR?
+                                                </Text>
+                                                <Text type="secondary" style={{ fontSize: 13, display: 'block', lineHeight: 1.5, color: darkMode ? '#94a3b8' : '#334155' }}>
+                                                    <strong>Compound Annual Growth Rate (CAGR)</strong> is the average annual rate at which your savings grow, factoring in <strong>compounding</strong> (earning interest on your previous interest). For instance, a <strong>12% CAGR</strong> means your portfolio grows by an average of 12% a year. While real markets fluctuate month-to-month, CAGR represents the smoothed, average growth baseline.
+                                                </Text>
+                                            </Col>
+                                            <Col xs={24} sm={12}>
+                                                <Text strong style={{ color: darkMode ? '#38bdf8' : '#0369a1', display: 'block', marginBottom: 4 }}>
+                                                    🎲 How the Stochastic Simulator Works
+                                                </Text>
+                                                <Text type="secondary" style={{ fontSize: 13, display: 'block', lineHeight: 1.5, color: darkMode ? '#94a3b8' : '#334155' }}>
+                                                    Instead of assuming a straight-line constant return, our model runs <strong>1,000 independent virtual future scenarios</strong>. Every month, we inject randomized market booms, corrections, and crashes using a mathematical tool called the <strong>Box-Muller transform</strong>, which perfectly replicates real-world asset volatility.
+                                                </Text>
+                                            </Col>
+                                            <Col xs={24}>
+                                                <div style={{ borderTop: darkMode ? '1px dashed #334155' : '1px dashed #bae6fd', paddingTop: 8, marginTop: 4 }}>
+                                                    <Text style={{ fontSize: 12, color: darkMode ? '#38bdf8' : '#0369a1' }}>
+                                                        💡 <strong>How to read the lines:</strong> The <strong>Worst Case (10th percentile)</strong> represents a severe market downturn (90% of trials performed better). The <strong>Median Case (50th percentile)</strong> is the most typical and likely average path. The <strong>Best Case (90th percentile)</strong> represents a highly favorable market bull run. The <strong>Success Probability</strong> is the percentage of the 1,000 runs that successfully reached or exceeded your target goal.
+                                                    </Text>
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                </div>
+                            </Card>
+                        </Col>
+                    </Row>
+                )}
+            </Modal>
 
             <AddGoalModal
                 visible={isAddModalVisible}

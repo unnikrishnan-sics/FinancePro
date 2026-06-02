@@ -18,6 +18,31 @@ const linearRegression = (y) => {
     return { m: slope, b: intercept };
 };
 
+// Holt's Linear (Double) Exponential Smoothing for Trend Forecasting
+const doubleExponentialSmoothing = (data, alpha = 0.5, beta = 0.3, k = 3) => {
+    const n = data.length;
+    if (n === 0) return Array(k).fill(0);
+    if (n === 1) return Array(k).fill(data[0]);
+
+    // Initial level and trend
+    let level = data[0];
+    let trend = data[1] - data[0];
+
+    // Smooth over history
+    for (let i = 1; i < n; i++) {
+        const lastLevel = level;
+        level = alpha * data[i] + (1 - alpha) * (level + trend);
+        trend = beta * (level - lastLevel) + (1 - beta) * trend;
+    }
+
+    // Forecast k periods ahead
+    const forecasts = [];
+    for (let step = 1; step <= k; step++) {
+        forecasts.push(Math.max(0, level + step * trend));
+    }
+    return forecasts;
+};
+
 // @desc    Get Analytics Data (Historical + Prediction)
 // @route   GET /api/v1/analytics/data (or POST for Admin)
 // @access  Private
@@ -62,22 +87,33 @@ const getAnalyticsData = async (req, res) => {
         // Convert to array and ensure chronological order
         const historicalData = Object.values(monthlyData);
 
-        // Prepare data for prediction (Expense Trend)
+        // Prepare data for prediction (Expense & Income history)
         const expenseHistory = historicalData.map(d => d.expense);
-
-        // Predict next month
-        const { m, b } = linearRegression(expenseHistory);
-        const nextMonthX = expenseHistory.length + 1;
-        const predictedExpense = Math.max(0, m * nextMonthX + b); // No negative expense
-
-        // Predict Income (Simple average or trend)
         const incomeHistory = historicalData.map(d => d.income);
-        const { m: mI, b: bI } = linearRegression(incomeHistory);
-        const predictedIncome = Math.max(0, mI * nextMonthX + bI);
 
-        const nextMonthDate = new Date();
-        nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
-        const nextMonthName = nextMonthDate.toLocaleString('default', { month: 'short' });
+        // Run Double Exponential Smoothing for 3 months ahead
+        const expForecast = doubleExponentialSmoothing(expenseHistory, 0.5, 0.3, 3);
+        const incForecast = doubleExponentialSmoothing(incomeHistory, 0.5, 0.3, 3);
+
+        const predictions = [];
+        for (let i = 0; i < 3; i++) {
+            const nextDate = new Date();
+            nextDate.setMonth(nextDate.getMonth() + 1 + i);
+            const monthName = nextDate.toLocaleString('default', { month: 'short' });
+            
+            predictions.push({
+                month: monthName,
+                expense: expForecast[i],
+                income: incForecast[i]
+            });
+        }
+
+        const predictedExpense = predictions[0].expense;
+        const predictedIncome = predictions[0].income;
+        const nextMonthName = predictions[0].month;
+
+        // Calculate slope trend
+        const m = expForecast[2] - expForecast[0];
 
         // --- Smart AI Recommendations Logic ---
         const recommendations = [];
@@ -218,6 +254,7 @@ const getAnalyticsData = async (req, res) => {
                 expense: predictedExpense,
                 income: predictedIncome
             },
+            predictions: predictions, // 3-month forecast
             summary: {
                 trend: m > 0 ? 'increasing' : 'decreasing',
                 slope: m

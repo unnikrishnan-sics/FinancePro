@@ -27,6 +27,14 @@ const messageSchema = mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    adminResponse: {
+        type: String,
+        required: false,
+    },
+    respondedAt: {
+        type: Date,
+        required: false,
+    },
 }, {
     timestamps: true,
 });
