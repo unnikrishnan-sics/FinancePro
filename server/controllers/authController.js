@@ -17,6 +17,19 @@ const loginUser = async (req, res) => {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
+        if (user.isBlocked) {
+            console.log(`❌ Login failed: Blocked user attempted login (${email})`);
+            return res.status(403).json({ message: 'Your account has been blocked by an administrator.' });
+        }
+
+        // Maintenance Mode Check
+        const SystemConfig = require('../models/configModel');
+        const config = await SystemConfig.findOne({});
+        if (config && config.maintenanceMode && !user.isAdmin) {
+            console.log(`❌ Login failed: Standard user tried login during maintenance (${email})`);
+            return res.status(503).json({ message: 'The platform is currently undergoing scheduled maintenance. Please try again later.' });
+        }
+
         const isMatch = await user.matchPassword(password);
         if (!isMatch) {
             console.log(`❌ Login failed: Incorrect password for ${email}`);

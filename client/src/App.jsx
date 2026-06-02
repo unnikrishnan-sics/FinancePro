@@ -19,6 +19,7 @@ import AdminSystemAnalytics from './pages/AdminSystemAnalytics';
 import UserFeedback from './pages/UserFeedback';
 import AdminMessages from './pages/AdminMessages';
 import Goals from './pages/Goals';
+import AdminSystemControl from './pages/AdminSystemControl';
 import NotFound from './pages/NotFound';
 import DashboardLayout from './components/DashboardLayout';
 import PublicLayout from './layouts/PublicLayout';
@@ -89,6 +90,7 @@ const AppContent = () => {
               <Route path="admin" element={<AdminDashboard />} />
               <Route path="admin/system-analytics" element={<AdminSystemAnalytics />} />
               <Route path="admin/messages" element={<AdminMessages />} />
+              <Route path="admin/control" element={<AdminSystemControl />} />
               <Route path="admin/analytics/:userId" element={<Analytics />} />
             </Route>
 

@@ -15,6 +15,7 @@ const getAllTransactions = async (req, res) => {
 
 const User = require('../models/userModel');
 const Notification = require('../models/notificationModel');
+const SystemConfig = require('../models/configModel');
 
 // @desc    Add transaction
 // @route   POST /api/v1/transactions/add-transaction
@@ -26,6 +27,24 @@ const addTransaction = async (req, res) => {
         // Simple validation
         if (!amount || !type || !category) {
             return res.status(400).json({ message: 'Please provide all required fields' });
+        }
+
+        // --- Rate Limiting Daily Transactions ---
+        const config = await SystemConfig.findOne({});
+        const maxCap = config ? config.maxDailyTransactionCount : 50;
+
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const countToday = await Transaction.countDocuments({
+            user: req.user.id,
+            createdAt: { $gte: startOfDay, $lte: endOfDay }
+        });
+
+        if (countToday >= maxCap) {
+            return res.status(429).json({ message: `Daily Transaction Limit Exceeded: You have reached the maximum allowance of ${maxCap} transactions per day set by the system administrator.` });
         }
 
         const transaction = await Transaction.create({
@@ -41,7 +60,8 @@ const addTransaction = async (req, res) => {
         // 1. Check for High Value Transaction
         if (type === 'expense') {
             const user = await User.findById(req.user.id);
-            const threshold = user.highValueThreshold || 1000; // Default if not set
+            const defaultThreshold = config ? config.globalHighValueThreshold : 2000;
+            const threshold = user.highValueThreshold || defaultThreshold;
 
             if (Number(amount) > threshold) {
                 await Notification.create({
@@ -115,7 +135,9 @@ const editTransaction = async (req, res) => {
         // --- Notification Logic ---
         if (type === 'expense' || transaction.type === 'expense') {
             const user = await User.findById(req.user.id);
-            const threshold = user.highValueThreshold || 1000;
+            const config = await SystemConfig.findOne({});
+            const defaultThreshold = config ? config.globalHighValueThreshold : 2000;
+            const threshold = user.highValueThreshold || defaultThreshold;
 
             if (Number(amount) > threshold) {
                 await Notification.create({

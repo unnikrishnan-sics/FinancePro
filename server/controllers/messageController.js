@@ -133,6 +133,13 @@ const chatWithAdvisor = async (req, res) => {
     try {
         const userId = req.user._id;
 
+        // Check if AI Advisor is disabled system-wide
+        const SystemConfig = require('../models/configModel');
+        const config = await SystemConfig.findOne({});
+        if (config && config.disableAiAdvisor) {
+            return res.status(503).json({ message: 'The AI Financial Advisor is currently disabled by the system administrator for maintenance.' });
+        }
+
         // 1. Fetch real-time user context from DB
         const transactions = await Transaction.find({ user: userId }).sort({ date: 1 });
         const goals = await Goal.find({ user: userId });

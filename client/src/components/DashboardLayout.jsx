@@ -16,7 +16,8 @@ import {
     CheckCircleOutlined,
     MessageOutlined,
     FileTextOutlined,
-    AimOutlined
+    AimOutlined,
+    SlidersOutlined
 } from '@ant-design/icons';
 import API from '../utils/axios';
 import ChatBot from './ChatBot';
@@ -45,6 +46,7 @@ const DashboardLayout = () => {
         { key: '/dashboard/admin', icon: <AppstoreOutlined />, label: 'Admin Dashboard' },
         { key: '/dashboard/admin/system-analytics', icon: <PieChartOutlined />, label: 'System Analytics' },
         { key: '/dashboard/admin/messages', icon: <MessageOutlined />, label: 'Messages' },
+        { key: '/dashboard/admin/control', icon: <SlidersOutlined />, label: 'System Control' },
         { key: '/dashboard/settings', icon: <SettingOutlined />, label: 'Settings' },
     ] : [
         { key: '/dashboard', icon: <AppstoreOutlined />, label: 'Overview' },
